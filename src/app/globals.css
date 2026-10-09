@@ -1,34 +1,50 @@
+@import "tailwindcss";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --muted: #737373;
+  --muted-foreground: #a1a1a1;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #2563eb;
+  --radius: 0.5rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --card: #18181b;
+    --card-foreground: #ededed;
+    --popover: #18181b;
+    --popover-foreground: #ededed;
+    --primary: #3b82f6;
+    --primary-foreground: #000000;
+    --secondary: #27272a;
+    --secondary-foreground: #ededed;
+    --muted: #a1a1a1;
+    --muted-foreground: #a1a1a1;
+    --accent: #27272a;
+    --accent-foreground: #ededed;
+    --destructive: #ef4444;
+    --destructive-foreground: #000000;
+    --border: #27272a;
+    --input: #27272a;
+    --ring: #3b82f6;
   }
-}
-
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -37,13 +53,28 @@ body {
   margin: 0;
 }
 
+html,
+body {
+  height: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+@layer base {
+  * {
+    border-color: var(--border);
   }
 }
