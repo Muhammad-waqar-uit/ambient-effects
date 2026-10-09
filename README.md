@@ -4,8 +4,9 @@ A lightweight, zero-dependency (except React/Next) library of ambient canvas eff
 
 Built for **Next.js 16** + **React 19** + **TypeScript**. Zero runtime dependencies beyond React and Next.js.
 
-[![npm version](https://img.shields.io/npm/v/ambient-effects.svg)](https://www.npmjs.com/package/ambient-effects)
+[![npm version](https://img.shields.io/npm/v/ambient-effects.svg?label=latest&color=lightgray)](https://www.npmjs.com/package/ambient-effects)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![GitHub pages](https://img.shields.io/github/deployments/Muhammad-waqar-uit/ambient-effects/github-pages?label=github%20pages)](https://muhammad-waqar-uit.github.io/ambient-effects/)
 
 ## Quick start
 
@@ -30,13 +31,21 @@ export default function Page() {
 ## Install from source
 
 ```bash
-git clone https://github.com/ambient-effects/ambient-effects
+git clone https://github.com/Muhammad-waqar-uit/ambient-effects
 cd ambient-effects
 npm install
 npm run dev
 ```
 
 Open `http://localhost:3000` — the homepage renders the fireflies effect with a live effect switcher in the top-right corner.
+
+### npm package status
+
+This package is not yet published to the npm registry. Until it is, `npm install ambient-effects` will install nothing.
+
+**To use it now:** clone the repo and import from the source directly, or install it as a local workspace dependency.
+
+**To publish it:** an owner with npm publish rights runs `npm publish` from the project root after logging in with `npm login`. The package will then be available at https://www.npmjs.com/package/ambient-effects.
 
 ## Usage
 
@@ -209,7 +218,7 @@ Contributions are welcome. Please read the guidelines below before opening a PR.
 
 ### Reporting a bug
 
-Open an issue with:
+Open an issue at https://github.com/Muhammad-waqar-uit/ambient-effects/issues with:
 - The effect name.
 - Browser + OS.
 - A minimal repro or a description of the visual glitch.
