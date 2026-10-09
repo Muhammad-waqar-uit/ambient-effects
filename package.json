@@ -28,9 +28,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ambient-effects/ambient-effects.git"
+    "url": "git+https://github.com/Muhammad-waqar-uit/ambient-effects.git"
   },
-  "homepage": "https://github.com/ambient-effects/ambient-effects#readme",
+  "homepage": "https://github.com/Muhammad-waqar-uit/ambient-effects#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": "https://github.com/ambient-effects/ambient-effects/issues",
   "author": "",
   "scripts": {
