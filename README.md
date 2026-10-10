@@ -233,7 +233,7 @@ Open an issue at https://github.com/Muhammad-waqar-uit/ambient-effects/issues wi
 
 See [CHANGELOG.md](CHANGELOG.md).
 
-## Acknowledgments
+## Acknowledgment
 
 - Built on [Next.js](https://nextjs.org/) and [React](https://react.dev/).
 - Styling via [Tailwind CSS v4](https://tailwindcss.com/).
