@@ -7,7 +7,7 @@ Built for **Next.js 16** + **React 19** + **TypeScript**. Runtime dependencies b
 [![npm version](https://img.shields.io/npm/v/ambient-effects)](https://www.npmjs.com/package/ambient-effects)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Current release: v0.2.0** — full interaction layer (pointer, click, scroll, arrow keys), faithful port of all 10 effects including Rain puddles and Flow trails, `src/index.ts` barrel exported correctly, shadcn-style docs at `/about`. See [CHANGELOG.md](CHANGELOG.md) for the complete list.
+**Current release: v0.3.0** — 4 new effects (Spooky, Neon, Wind, Sunlight), full interaction layer (pointer, click, scroll, arrow keys), faithful port of all effects including Rain puddles and Flow trails, `src/index.ts` barrel exported correctly, shadcn-style docs at `/about`. See [CHANGELOG.md](CHANGELOG.md) for the complete list.
 
 ## Quick start
 
@@ -161,7 +161,7 @@ ambient-effects/
 │   │   └── ambient/
 │   │       ├── types.ts      # EffectId, EffectProps, EffectDefinition, AmbientSurfaceProps
 │   │       ├── ambient-surface.tsx   # Main "use client" component
-│   │       └── effects.ts     # All 10 effect implementations
+│   │       └── effects.ts     # All 14 effect implementations
 │   └── app/                  # Next.js app (demo + entrypoint)
 │       ├── page.tsx
 │       ├── layout.tsx
