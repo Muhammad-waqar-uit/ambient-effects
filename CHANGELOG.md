@@ -5,23 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0]
 
 ### Added
-
-- Initial release of ambient-effects.
-- `AmbientSurface` component with canvas-based ambient effects rendering.
-- 10 built-in effects: fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, flow.
-- Effect switching via inline `<select>` overlay.
-- Fullscreen mode (`fullscreen` prop).
-- Automatic `prefers-reduced-motion` respect with explicit `reduceMotion` override.
-- TypeScript types for all public API surface.
-- Next.js 16 + React 19 + TypeScript project setup.
-- ESLint + TypeScript strict mode quality gates.
-- Demo page at `/` with fireflies as default effect.
-
-### Known issues
-
-- The inline effect selector is rendered by default; hide via CSS if you don't want it.
-- Particles persist across effect switches within the same canvas session; a full reset on switch is not yet implemented.
-- No test suite yet — contributions adding Playwright or unit tests are welcome.
+- Full interaction layer on `AmbientSurface`: pointermove/pointerleave tracking with smoothed velocity, pointerdown bursts + 340px particle push, ArrowRight/ArrowLeft effect cycling, and scroll-driven velocity/progress/wind.
+- `dark` prop (default `true`) matching the reference's dark-first theme; toggling re-inits the active effect.
+- Faithful port of all 10 effects from the reference "10 Ambient Page Effects" page, including the previously missing **Rain** (puddle arrays with expanding ellipses, click splash) and **Flow** (tint-trail field with cursor vortex).
+- Shared burst system (`spawnBurst`, `drawBursts`, `clearBursts`, `pushParticles`) exported for custom UIs.
+- `components.json` + hand-written shadcn-idiom UI components (`button`, `badge`, `card`, `code-block`, `site-header`) using the existing `cn()` helper — zero new runtime dependencies.
+- `postcss.config.mjs` wiring Tailwind CSS v4 into the build, per Next.js 16's bundled docs.
+### Changed
+- Demo split: `/` is now the verbatim replica page (600vh scroll canvas, dock, name, hint, theme toggle); `/about` is a shadcn-style docs/landing page.
+- Reduced-motion now halves particle density instead of freezing to a static frame, matching the reference.
+- Device pixel ratio is capped at 2 (reference parity).
+- Fixed-step animation loop (`time += 0.016`) for reference parity at any refresh rate.
+### Fixed
+- `src/index.ts` missing while `package.json` pointed `main`/`types`/`exports` at it; the published package was broken and is now a working source-only barrel.
+- `effects.ts` no longer exports were missing (`effects`, `getEffect`), which broke `tsc` completely.
+- Removed dead `src/app/page.module.css`.
+- `@tailwindcss/postcss` moved to `devDependencies` (build tool, not a runtime dep).
+### Known issues
+- No test suite yet — Playwright/unit contributions welcome.

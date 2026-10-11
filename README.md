@@ -1,12 +1,13 @@
 # ambient-effects
 
-A lightweight, zero-dependency (except React/Next) library of ambient canvas effects for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, or flow.
+A lightweight library of ambient canvas effects for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, or flow. Every effect reacts to the pointer, fires on click, and bends with scroll, matching the reference demo exactly.
 
-Built for **Next.js 16** + **React 19** + **TypeScript**. Zero runtime dependencies beyond React and Next.js.
+Built for **Next.js 16** + **React 19** + **TypeScript**. Runtime dependencies beyond React: [`clsx`](https://github.com/lukeed/clsx) and [`tailwind-merge`](https://github.com/dcastil/tailwind-merge) only (used by the `cn()` class helper).
 
 [![npm version](https://img.shields.io/npm/v/ambient-effects)](https://www.npmjs.com/package/ambient-effects)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![GitHub pages](https://img.shields.io/github/deployments/Muhammad-waqar-uit/ambient-effects/github-pages?label=github%20pages)](https://muhammad-waqar-uit.github.io/ambient-effects/)
+
+**Current release: v0.2.0** — full interaction layer (pointer, click, scroll, arrow keys), faithful port of all 10 effects including Rain puddles and Flow trails, `src/index.ts` barrel exported correctly, shadcn-style docs at `/about`. See [CHANGELOG.md](CHANGELOG.md) for the complete list.
 
 ## Quick start
 
@@ -43,7 +44,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` — the homepage renders the fireflies effect with a live effect switcher in the top-right corner.
+Open `http://localhost:3000` — `/` is a verbatim replica of the reference "10 Ambient Page Effects" page (fixed canvas, glass dock, name label, hint), and `/about` is the docs landing page.
 
 ## Usage
 
@@ -51,9 +52,13 @@ Open `http://localhost:3000` — the homepage renders the fireflies effect with 
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `defaultEffect` | `EffectId` | `"fireflies"` | Initial effect to display. |
+| `defaultEffect` | `EffectId` | `"fireflies"` | Initial effect to display (uncontrolled). |
+| `effect` | `EffectId` | — | Controlled effect. If provided, component is controlled. |
+| `onEffectChange` | `(effect: EffectId) => void` | — | Callback when effect changes. |
+| `showControls` | `boolean` | `true` | Whether to show the built-in effect selector. |
 | `fullscreen` | `boolean` | `false` | When `true`, the canvas fills the viewport (`fixed inset-0`) instead of the parent container. |
-| `reduceMotion` | `boolean` | `undefined` | Explicit override for the user's motion preference. When `undefined`, respects `prefers-reduced-motion`. When `true`, effects render static frames. |
+| `dark` | `boolean` | `true` | Dark-first theme like the reference; toggling re-inits the current effect. |
+| `reduceMotion` | `boolean` | `undefined` | Explicit override for the user's motion preference. When `undefined`, respects `prefers-reduced-motion`. When active, particle density is halved (animation continues, matching the reference). |
 | `className` | `string` | — | CSS class applied to the canvas wrapper. |
 | `style` | `React.CSSProperties` | — | Inline styles applied to the canvas wrapper. |
 
@@ -63,28 +68,30 @@ The built-in effects are:
 
 | Effect | Description |
 |--------|-------------|
-| `fireflies` | Soft glowing particles drifting with sine-wave motion. |
-| `snow` | Gentle snowfall with wobble and highlight dots. |
-| `bubbles` | Rising translucent bubbles with outer glow and specular highlight. |
-| `confetti` | Falling colored rectangles with rotation, gravity, and fade. |
-| `constellation` | Stars with lines connecting nearby points and twinkle. |
-| `stardust` | Small fading stars with radial glow, wrapping around edges. |
-| `embers` | Rising embers with glow, sine drift, and lifetime fade. |
-| `leaves` | Drifting leaves falling with rotation and wind sway. |
-| `rain` | Diagonal rain streaks. |
-| `flow` | Horizontal flowing particles with trailing glow. |
+| `fireflies` | Drifting glowing particles that seek the pointer; additive glow in dark mode. |
+| `snow` | Layered snowfall with cursor repulsion, wind drift and scroll gusts. |
+| `bubbles` | Rising translucent bubbles; click near one to pop it into a burst. |
+| `confetti` | Falling colored rectangles with rotation; scatters away from the pointer. |
+| `constellation` | Stars linked by lines, with extra connections reaching to the cursor. |
+| `stardust` | Sparkling dust whose emitters track fast pointer movement. |
+| `embers` | Rising glowing embers with additive blending and bottom-fade intensity. |
+| `leaves` | Falling leaves with rotation, sway and wind-driven drift. |
+| `rain` | Slanted rain streaks that pool into expanding ripple puddles; click for a large splash. |
+| `flow` | A tint-trail flow field that swirls around the cursor. |
 
-### Effect switching
+### Interactions
+| Gesture | Behavior |
+|---------|
+| Move | Cursor position and velocity are smoothed into particle physics; the hint fades after the first move. |
+| Click | Sparks burst at the pointer, nearby particles get shoved away (within 340px); bubbles pop and rain splits large puddles. |
+| Scroll | Scroll velocity slants particles; wind follows a sine of scroll progress. |
+| Arrow keys | ArrowRight/ArrowLeft cycle the ten effects. |
 
-The component includes an inline `<select>` that lets users switch effects live. It is rendered by default (positioned top-right with `z-10`). You can hide it via CSS:
+> The reference page is 600vh tall so scroll interactions have room; give your page similar height when you use scroll-reactive behavior.
 
-```css
-.ambient-surface select {
-  display: none;
-}
-```
+### Theme
 
-Or remove it from the component — see [Contributing](#contributing) for how to customize the overlay.
+`dark` defaults to `true` (the reference starts dark and never reads `prefers-color-scheme`). Set `dark={false}` to start light; toggling the attribute re-initializes the current effect so lightness dimming applies immediately.
 
 ### Fullscreen mode
 
@@ -102,7 +109,7 @@ The component automatically reads `prefers-reduced-motion` when `reduceMotion` i
 <AmbientSurface reduceMotion={true} />
 ```
 
-When reduced motion is active, each effect draws a single static frame (no animation loop updates).
+When reduced motion is active, particle density is halved and animation continues — matching the reference's `cnt()` scaling rather than freezing to a static frame.
 
 ## Developer experience
 

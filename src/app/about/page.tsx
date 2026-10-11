@@ -1,371 +1,199 @@
+import Link from "next/link";
+import { SiteHeader } from "@/components/ui/site-header";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { CodeBlock } from "@/components/ui/code-block";
+
 export const metadata = {
-  title: "About — Ambient Effects",
+  title: "About — ambient-effects",
   description:
-    "About the ambient-effects library: ambient canvas effects for Next.js pages. Built with Next.js 16, React 19, and TypeScript.",
+    "Docs and install for ambient-effects: ten interactive ambient canvas effects for Next.js pages.",
 };
 
-export default function AboutPage() {
-  return (
-    <div
-      style={{
-        maxWidth: 720,
-        margin: "0 auto",
-        padding: "64px 24px",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        color: "#171717",
-        lineHeight: 1.7,
-      }}
-    >
-      <header style={{ marginBottom: 40 }}>
-        <h1
-          style={{
-            fontSize: 32,
-            fontWeight: 700,
-            marginBottom: 8,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          About Ambient Effects
-        </h1>
-        <p style={{ fontSize: 18, color: "#525252", margin: 0 }}>
-          A lightweight library of ambient canvas effects for Next.js pages.
-        </p>
-      </header>
+const install = "npm install ambient-effects";
 
-      <section
-        style={{
-          background: "#f5f5f5",
-          borderRadius: 12,
-          padding: 24,
-          marginBottom: 32,
-        }}
-      >
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            marginTop: 0,
-            marginBottom: 12,
-          }}
-        >
-          Live demo
-        </h2>
-        <p style={{ margin: 0, marginBottom: 16 }}>
-          Experience the effects in your browser:
-        </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <a
-            href="https://muhammad-waqar-uit.github.io/ambient-effects/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "#2563eb",
-              color: "#ffffff",
-              padding: "10px 18px",
-              borderRadius: 8,
-              textDecoration: "none",
-              fontWeight: 500,
-              fontSize: 14,
-            }}
-          >
-            🌟 View live demo
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ flexShrink: 0 }}
-            >
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-          </a>
-          <a
-            href="https://github.com/Muhammad-waqar-uit/ambient-effects"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              background: "#1f2937",
-              color: "#ffffff",
-              padding: "10px 18px",
-              borderRadius: 8,
-              textDecoration: "none",
-              fontWeight: 500,
-              fontSize: 14,
-            }}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              style={{ flexShrink: 0 }}
-            >
-              <path d="M12 .5C6.5.5 2 4.5 2 10.5c0 6.5 6.5 12 10.5 12 2.5 0 4.8-.8 6.5-2.2c.5.2 1 .2 1.5-.1.5.3 1.2.3 1.7 0C19.2 20.3 21.5 19.5 24 19.5c0-6.5-6.5-12-10.5-12z" />
-            </svg>
-            View source on GitHub
-          </a>
-        </div>
-      </section>
-
-      <section style={{ marginBottom: 32 }}>
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            marginTop: 0,
-            marginBottom: 12,
-          }}
-        >
-          What is it?
-        </h2>
-        <p style={{ margin: 0 }}>
-          Ambient Effects is a small library of atmospheric canvas animations
-          designed to sit behind page content and add a subtle, calming visual
-          layer. It provides ten built-in effects — fireflies, snow, bubbles,
-          confetti, constellation, stardust, embers, leaves, rain, and flow —
-          each implemented as a lightweight particle system that renders to a{" "}
-          <code>canvas</code> element via the Canvas 2D API.
-        </p>
-        <p style={{ margin: "16px 0 0" }}>
-          The library is built for{" "}
-          <a
-            href="https://nextjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#2563eb" }}
-          >
-            Next.js 16
-          </a>{" "}
-          and{" "}
-          <a
-            href="https://react.dev/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#2563eb" }}
-          >
-            React 19
-          </a>{" "}
-          with TypeScript. It uses no runtime dependencies beyond React and
-          Next.js itself.
-        </p>
-      </section>
-
-      <section style={{ marginBottom: 32 }}>
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            marginTop: 0,
-            marginBottom: 12,
-          }}
-        >
-          Features
-        </h2>
-        <ul
-          style={{
-            margin: 0,
-            paddingLeft: 20,
-            lineHeight: 1.8,
-          }}
-        >
-          <li>10 built-in ambient effects with distinct visual styles.</li>
-          <li>
-            Fits inside any container — or use{" "}
-            <code style={{ fontFamily: "monospace" }}>fullscreen</code> mode to
-            fill the viewport.
-          </li>
-          <li>
-            Respects the user&apos;s{" "}
-            <code style={{ fontFamily: "monospace" }}>prefers-reduced-motion</code>{" "}
-            preference automatically.
-          </li>
-          <li>Built-in effect switcher overlay (can be hidden via CSS).</li>
-          <li>TypeScript types for all props and effect definitions.</li>
-          <li>Zero runtime dependencies beyond React and Next.js.</li>
-          <li>
-            Accessible: canvas has <code>role=&quot;img&quot;</code> and an{" "}
-            <code>aria-label</code>, and the selector is a real{" "}
-            <code>&lt;select&gt;</code>.
-          </li>
-        </ul>
-      </section>
-
-      <section style={{ marginBottom: 32 }}>
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            marginTop: 0,
-            marginBottom: 12,
-          }}
-        >
-          Installation
-        </h2>
-        <p style={{ margin: 0, marginBottom: 12 }}>
-          The package is not yet published to npm. Until it is, the quickest way
-          to try it is to clone the repo:
-        </p>
-        <pre
-          style={{
-            background: "#1f2937",
-            color: "#e5e7eb",
-            padding: 16,
-            borderRadius: 8,
-            overflow: "auto",
-            fontSize: 13,
-            marginBottom: 16,
-          }}
-        >
-          {`git clone https://github.com/Muhammad-waqar-uit/ambient-effects
-cd ambient-effects
-npm install
-npm run dev`}
-        </pre>
-        <p style={{ margin: 0 }}>
-          Once published, installation will be as simple as{" "}
-          <code>npm install ambient-effects</code>.
-        </p>
-      </section>
-
-      <section style={{ marginBottom: 32 }}>
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            marginTop: 0,
-            marginBottom: 12,
-          }}
-        >
-          How to use
-        </h2>
-        <p style={{ margin: 0, marginBottom: 12 }}>
-          Import <code>AmbientSurface</code> and drop it into a container:
-        </p>
-        <pre
-          style={{
-            background: "#1f2937",
-            color: "#e5e7eb",
-            padding: 16,
-            borderRadius: 8,
-            overflow: "auto",
-            fontSize: 13,
-          }}
-        >
-          {`import { AmbientSurface } from "ambient-effects";
+const usage = `import { AmbientSurface } from "ambient-effects";
 
 export default function Page() {
   return (
     <main style={{ height: "100vh", overflow: "hidden" }}>
-      <AmbientSurface defaultEffect="fireflies" />
+      <AmbientSurface defaultEffect="fireflies" fullscreen />
     </main>
   );
-}`}
-        </pre>
-      </section>
+}`;
 
-      <section style={{ marginBottom: 32 }}>
-        <h2
-          style={{
-            fontSize: 18,
-            fontWeight: 600,
-            marginTop: 0,
-            marginBottom: 12,
-          }}
-        >
-          Built with
-        </h2>
-        <ul
-          style={{
-            margin: 0,
-            paddingLeft: 20,
-            lineHeight: 1.8,
-          }}
-        >
-          <li>
-            <a
-              href="https://nextjs.org/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#2563eb" }}
-            >
-              Next.js 16
-            </a>{" "}
-            — App Router, static export, TypeScript support
-          </li>
-          <li>
-            <a
-              href="https://react.dev/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#2563eb" }}
-            >
-              React 19
-            </a>{" "}
-            — Client component with <code>requestAnimationFrame</code> loop
-          </li>
-          <li>
-            <a
-              href="https://tailwindcss.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#2563eb" }}
-            >
-              Tailwind CSS v4
-            </a>{" "}
-            — Utility classes for the demo UI
-          </li>
-          <li>
-            <a
-              href="https://github.com/lukeed/clsx"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#2563eb" }}
-            >
-              clsx
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://github.com/dcastil/tailwind-merge"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#2563eb" }}
-            >
-              tailwind-merge
-            </a>{" "}
-            — Class merging utility
-          </li>
-        </ul>
-      </section>
+const effectsList = [
+  ["Fireflies", "Soft glowing particles that drift toward your cursor and dim with your scroll."],
+  ["Snow", "Layered snowfall with cursor repulsion, wind drift and scroll gusts."],
+  ["Bubbles", "Rising translucent bubbles — click near one and it pops into a burst."],
+  ["Confetti", "Falling rotating confetti that scatters away from the pointer."],
+  ["Constellation", "Stars linked by lines, with extra lines reaching to your cursor."],
+  ["Stardust", "Sparkling dust whose trails trail behind fast pointer movement."],
+  ["Embers", "Rising glowing embers with intensity that ramps near the bottom of the canvas."],
+  ["Leaves", "Drifting falling leaves with rotation, sway and mid-air tumbling."],
+  ["Rain", "Heavy rain that pools into ripple puddles at varying landing heights."],
+  ["Flow", "A flowing particle field drawing silky trails that swirl around your cursor."],
+] as const;
 
-      <footer
-        style={{
-          borderTop: "1px solid #e5e5e5",
-          paddingTop: 24,
-          marginTop: 16,
-          color: "#737373",
-          fontSize: 14,
-        }}
-      >
-        <p style={{ margin: 0 }}>
-          MIT Licensed — free to use, modify, and distribute, including in
-          commercial projects.
-        </p>
-        <p style={{ margin: "8px 0 0" }}>
-          Built by Muhammad-waqar-uit. Hosted on GitHub Pages.
-        </p>
-      </footer>
+const propsList = [
+  ["defaultEffect", '"fireflies"', "Initial effect for the uncontrolled component."],
+  ["effect", "EffectId", "Controlled effect id; makes the component fully controlled."],
+  ["onEffectChange", "(id: EffectId) => void", "Called whenever the effect changes (buttons, select, arrow keys)."],
+  ["showControls", "true", "Renders the built-in <select> picker in the top-right corner."],
+  ["fullscreen", "false", "Canvas is sized to the viewport instead of its container."],
+  ["dark", "true", "Dark-first theme like the reference; toggling re-inits the effect."],
+  ["reduceMotion", "undefined", "Respects prefers-reduced-motion when unset; true halves particle density."],
+  ["className", "—", "Extra classes for the wrapper div."],
+  ["style", "—", "Inline styles for the wrapper div."],
+] as const;
+
+const interactionsList = [
+  ["Move", "Particles react to cursor position and velocity; the hint fades the first time you move."],
+  ["Click", "A burst of sparks fires at the pointer; nearby particles get shoved away; bubbles pop and rain splashes."],
+  ["Scroll", "Scroll velocity slants particles; wind follows a sine of scroll progress, and the theme dims in light mode."],
+  ["Arrow keys", "ArrowRight / ArrowLeft cycle through the ten effects."],
+] as const;
+
+export default function AboutPage() {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <SiteHeader />
+
+      <main className="mx-auto w-full max-w-5xl px-4 pb-24">
+        {/* Hero */}
+        <section className="px-2 py-16 md:py-24">
+          <Badge className="mb-4">Next.js 16 · React 19 · TypeScript</Badge>
+          <h1 className="max-w-2xl text-4xl font-semibold tracking-tight text-balance md:text-5xl">
+            Ten ambient canvas effects for Next.js pages
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg text-muted-foreground text-pretty">
+            Drop <code className="rounded bg-chip px-1.5 py-0.5 text-sm">AmbientSurface</code> into any
+            client page and get fireflies, snow, bubbles, rain — every effect reacts to the pointer,
+            fires on click, and bends with scroll, matching the reference demo exactly.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/" passHref>
+              <Button size="lg">Open the live demo</Button>
+            </Link>
+            <a href="#install" className="inline-flex">
+              <Button variant="outline" size="lg">
+                Install
+              </Button>
+            </a>
+            <a
+              href="https://github.com/Muhammad-waqar-uit/ambient-effects"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex"
+            >
+              <Button variant="ghost" size="lg">
+                GitHub ↗
+              </Button>
+            </a>
+          </div>
+        </section>
+
+        {/* Features */}
+        <section className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Interactive by default</CardTitle>
+              <CardDescription>
+                Pointer position and velocity, click bursts, scroll wind — no props to wire up.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Verified rendering</CardTitle>
+              <CardDescription>
+                Colors dim in light mode, embers glow with additive blending, trails tint the canvas
+                in Flow exactly like the reference page.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Lightweight</CardTitle>
+              <CardDescription>
+                Zero runtime deps beyond React — a single client component you drop behind any UI.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </section>
+
+        {/* Effects grid */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-semibold tracking-tight">The effects</h2>
+          <p className="mt-2 text-muted-foreground">
+            Each renders on a single fixed canvas; switch from the dock, the select, or arrow keys.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {effectsList.map(([name, blurb]) => (
+              <Card key={name}>
+                <CardHeader>
+                  <CardTitle className="text-base">{name}</CardTitle>
+                  <CardDescription>{blurb}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Install */}
+        <section id="install" className="mt-16 scroll-mt-24">
+          <h2 className="text-2xl font-semibold tracking-tight">Install</h2>
+          <CodeBlock className="mt-4" label="shell" code={install} />
+          <CodeBlock className="mt-4" label="page.tsx" code={usage} />
+        </section>
+
+        {/* Props */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-semibold tracking-tight">Props</h2>
+          <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-card">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-border text-muted-foreground">
+                  <th className="px-4 py-3 font-medium">Prop</th>
+                  <th className="px-4 py-3 font-medium">Default</th>
+                  <th className="px-4 py-3 font-medium">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {propsList.map(([prop, def, desc]) => (
+                  <tr key={prop} className="border-b border-border/60 last:border-0">
+                    <td className="px-4 py-3 font-medium">{prop}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{def}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Interactions */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-semibold tracking-tight">Interactions</h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {interactionsList.map(([n, blurb]) => (
+              <Card key={n}>
+                <CardHeader>
+                  <CardTitle className="text-base">{n}</CardTitle>
+                  <CardDescription>{blurb}</CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

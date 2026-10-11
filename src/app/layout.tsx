@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "Ambient Effects",
-  description: "A Next.js component for ambient page effects",
+  title: "10 Ambient Effects — ambient-effects",
+  description:
+    "A single verbatim replica page: fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain and flow. Move, click and scroll.",
 };
 
 export default function RootLayout({
@@ -12,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark">
       <body>{children}</body>
     </html>
   );

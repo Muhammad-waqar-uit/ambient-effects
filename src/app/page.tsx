@@ -1,37 +1,71 @@
-import { AmbientSurface } from "@/lib/ambient/ambient-surface";
+"use client";
 
-export const metadata = {
-  title: "Ambient Effects — Demo",
-  description: "Live demo of ambient canvas effects. Switch between fireflies, snow, bubbles, confetti, and more.",
-};
+import { AmbientSurface, effects } from "@/lib/ambient/ambient-surface";
+import type { EffectId } from "@/lib/ambient/types";
+import { useState } from "react";
 
 export default function Home() {
+  const [currentEffect, setCurrentEffect] = useState<EffectId>("fireflies");
+  const [isDark, setIsDark] = useState(true);
+
+  const toggleTheme = () => {
+    const next = !isDark;
+    setIsDark(next);
+    document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
+  };
+
+  const name = effects.find((e) => e.id === currentEffect)?.name ?? "";
+
   return (
-    <div style={{ height: "100vh", overflow: "hidden", position: "relative" }}>
-      <AmbientSurface defaultEffect="fireflies" />
-      <div
-        style={{
-          position: "absolute",
-          bottom: 16,
-          left: 16,
-          zIndex: 20,
-          background: "rgba(255,255,255,0.9)",
-          borderRadius: 8,
-          padding: "8px 12px",
-          fontSize: 14,
-          boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          pointerEvents: "none",
-        }}
-      >
+    <>
+      <AmbientSurface
+        effect={currentEffect}
+        onEffectChange={setCurrentEffect}
+        showControls={false}
+        fullscreen
+        dark={isDark}
+      />
+
+      <div id="name" aria-live="polite">
+        {name}
+      </div>
+      <div id="hint">MOVE, CLICK AND SCROLL</div>
+
+      <div className="dock" data-dock role="toolbar" aria-label="Effects">
+        {effects.map((effect) => (
+          <button
+            key={effect.id}
+            onClick={() => setCurrentEffect(effect.id)}
+            aria-pressed={currentEffect === effect.id}
+          >
+            {effect.name}
+          </button>
+        ))}
+        <div className="sep" />
+        <button onClick={toggleTheme}>{isDark ? "Light" : "Dark"}</button>
+      </div>
+
+      <footer className="replica-footer">
+        <span>ambient-effects v0.2.0</span>
+        <span className="replica-footer-sep">·</span>
+        <a href="/about/">Docs &amp; install</a>
+        <span className="replica-footer-sep">·</span>
         <a
-          href="https://muhammad-waqar-uit.github.io/ambient-effects/about"
+          href="https://github.com/Muhammad-waqar-uit/ambient-effects"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: "#2563eb", textDecoration: "none", fontWeight: 500 }}
         >
-          About this project →
+          GitHub
         </a>
-      </div>
-    </div>
+        <span className="replica-footer-sep">·</span>
+        <a
+          href="https://www.npmjs.com/package/ambient-effects"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          npm
+        </a>
+      </footer>
+    </>
   );
 }
