@@ -659,6 +659,7 @@ function drawFlow(props: EffectProps): void {
     if (p.x < 0 || p.x > WIDTH || p.y < 0 || p.y > HEIGHT) {
       p.x = R() * WIDTH;
       p.y = R() * HEIGHT;
+      return; // reference parity: respawned particles must not stroke a teleport line
     }
     ctx.strokeStyle = hsl(p.h * 140 + 170, 80, 66, 0.75);
     ctx.lineWidth = 1.1;
