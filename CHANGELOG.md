@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- 4 new effects (14 total): `spooky` (Halloween lantern with cursor-carved darkness, drifting ghosts, blinking red eye-pairs, and sudden lightning flashes with apparitions, ported from the Morgan Hollow reference), `neon` (flickering neon circuit strokes that glow brighter near the cursor), `wind` (gusting wind streaks that swirl around the pointer), and `sunlight` (warm god-rays with floating dust motes and scroll-slanted haze).
+
 ## [0.2.0]
 
 ### Added

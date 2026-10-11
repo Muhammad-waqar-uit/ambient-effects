@@ -1,6 +1,6 @@
 # ambient-effects
 
-A lightweight library of ambient canvas effects for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, or flow. Every effect reacts to the pointer, fires on click, and bends with scroll, matching the reference demo exactly.
+A lightweight library of ambient canvas effects for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, flow, spooky, neon, wind, or sunlight. Every effect reacts to the pointer, fires on click, and bends with scroll, matching the reference demo exactly.
 
 Built for **Next.js 16** + **React 19** + **TypeScript**. Runtime dependencies beyond React: [`clsx`](https://github.com/lukeed/clsx) and [`tailwind-merge`](https://github.com/dcastil/tailwind-merge) only (used by the `cn()` class helper).
 
@@ -78,6 +78,10 @@ The built-in effects are:
 | `leaves` | Falling leaves with rotation, sway and wind-driven drift. |
 | `rain` | Slanted rain streaks that pool into expanding ripple puddles; click for a large splash. |
 | `flow` | A tint-trail flow field that swirls around the cursor. |
+| `spooky` | Halloween lantern: cursor-carved low light, drifting ghosts, blinking red eye-pairs, sudden lightning flashes with apparitions (from "Morgan Hollow"). Click to strike. |
+| `neon` | Glowing neon circuit strokes with realistic on/off flicker that intensify near the cursor. |
+| `wind` | Gusts of wind streaks that swirl around the pointer and bend with scroll wind. |
+| `sunlight` | Warm god-rays from a sun origin, floating dust motes, and a scroll-slanted haze. |
 
 ### Interactions
 | Gesture | Behavior |

@@ -670,6 +670,515 @@ function drawFlow(props: EffectProps): void {
   });
 }
 
+/* ---------- 11. Spooky (Halloween lantern, ghosts, red eye-pairs, lightning, fog) ---------- */
+
+interface Ghost {
+  x: number;
+  y: number;
+  vy: number;
+  vx: number;
+  w: number;
+  bobPh: number;
+  life: number;
+  lifeMax: number;
+}
+
+interface EyePair {
+  x: number;
+  y: number;
+  gap: number;
+  life: number;
+  lifeMax: number;
+}
+
+interface FogPatch {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  vx: number;
+  ph: number;
+}
+
+interface SpookyState {
+  eyes: EyePair[];
+  fog: FogPatch[];
+  nextFlash: number;
+  flash: number;
+  flashSeq: number[];
+  flashIdx: number;
+}
+
+function spookyStore(): SpookyState {
+  const existing = store.get("spooky-state");
+  if (existing) return existing as unknown as SpookyState;
+  const fresh: SpookyState = {
+    eyes: [],
+    fog: [],
+    nextFlash: 240,
+    flash: 0,
+    flashSeq: [],
+    flashIdx: 0,
+  };
+  store.set("spooky-state", fresh as unknown as unknown[]);
+  return fresh;
+}
+
+function initSpooky(_props?: Partial<EffectProps>): void {
+  store.delete("spooky-state");
+  store.delete("spooky-ghosts");
+  const props = _props as EffectProps | undefined;
+  const W = props?.width ?? WIDTH;
+  const H = props?.height ?? HEIGHT;
+  const state = {
+    ghosts: [] as Ghost[],
+    eyes: [] as EyePair[],
+    fog: mk(cnt(6), () => ({
+      x: R() * W,
+      y: H * (0.62 + R() * 0.35),
+      w: W * (0.18 + R() * 0.25),
+      h: 40 + R() * 80,
+      vx: (R() - 0.5) * 0.35,
+      ph: R() * TAU,
+    })) as FogPatch[],
+    nextFlash: timeUntilFirst(240),
+    flash: 0,
+    flashSeq: [0.5, 0, 0.75, 0, 0.28, 0] as number[],
+    flashIdx: 0,
+  };
+  store.set("spooky-state", state as unknown as unknown[]);
+  const ghosts = storeFor<Ghost>("spooky-ghosts");
+  ghosts.length = 0;
+  ghosts.push(
+    ...mk(cnt(5), () => ({
+      x: R() * W,
+      y: H * (0.08 + R() * 0.62),
+      vy: -(0.1 + R() * 0.15),
+      vx: (R() - 0.5) * 0.3,
+      w: 22 + R() * 40,
+      bobPh: R() * TAU,
+      life: R() * 600,
+      lifeMax: 900 + R() * 900,
+    })),
+  );
+}
+
+function timeUntilFirst(frames: number): number {
+  // First strike early, like the reference's 4s lead-in scaled to frames.
+  return 60 + R() * (frames - 60);
+}
+
+function drawGhostShape(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, alpha: number): void {
+  // Classic sheet-ghost: rounded head, wavy hem — same silhouette as the reference symbol.
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const g = ctx.createLinearGradient(x, y - h, x, y + h * 0.4);
+  g.addColorStop(0, rgba(246, 241, 255, 0.95));
+  g.addColorStop(1, rgba(184, 166, 240, 0.4));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(x - w * 0.4, y + h * 0.35);
+  ctx.lineTo(x - w * 0.4, y - h * 0.15);
+  ctx.arc(x, y - h * 0.15, w * 0.4, Math.PI, 0, false);
+  const bob = 4;
+  const waves = 4;
+  for (let i = waves; i >= 0; i--) {
+    const wx = x - w * 0.4 + (i / waves) * w * 0.8;
+    ctx.lineTo(wx, y + h * 0.35 + (i % 2 === 0 ? bob : -bob) * 0.4);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowColor = rgba(190, 170, 255, 0.75);
+  ctx.shadowBlur = 14;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // Eyes + mouth
+  ctx.fillStyle = rgba(19, 12, 25, 0.95);
+  ctx.beginPath();
+  ctx.ellipse(x - w * 0.14, y - h * 0.2, w * 0.04, h * 0.06, 0, 0, TAU);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(x + w * 0.14, y - h * 0.2, w * 0.04, h * 0.06, 0, 0, TAU);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(x, y - h * 0.02, w * 0.05, h * 0.08, 0, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+}
+
+function rgba(r: number, g: number, b: number, a: number): string {
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawSpooky(props: EffectProps): void {
+  const { ctx, width, height, mx, my, dark, time } = props;
+  const A = storeFor<Ghost>("spooky-ghosts");
+  if (A.length === 0) initSpooky(props as Partial<EffectProps>);
+  const st = spookyStore();
+
+  // Fog patches near the bottom (reference fog layer).
+  st.fog.forEach((f) => {
+    f.x += f.vx;
+    if (f.x < -f.w * 0.5) f.x = width + f.w * 0.5;
+    if (f.x > width + f.w * 0.5) f.x = -f.w * 0.5;
+    const flick = 0.7 + 0.3 * Math.sin(time * 0.4 + f.ph);
+    const g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.w * 0.6);
+    g.addColorStop(0, rgba(169, 139, 230, 0.16 * flick));
+    g.addColorStop(1, rgba(169, 139, 230, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(f.x - f.w * 0.6, f.y - f.h * 0.6, f.w * 1.2, f.h * 1.2);
+  });
+
+  // Lantern darkening: light hole follows cursor (reference #dark layer).
+  const lx = mx > 0 ? mx : width * 0.5;
+  const ly = my > 0 ? my : height * 0.35;
+  ctx.fillStyle = rgba(4, 1, 8, dark ? 0.72 : 0.6);
+  ctx.fillRect(0, 0, width, height);
+  const lantern = ctx.createRadialGradient(lx, ly, 0, lx, ly, Math.min(width, height) * 0.22);
+  lantern.addColorStop(0, rgba(255, 210, 150, 0.16));
+  lantern.addColorStop(0.55, rgba(255, 190, 120, 0.05));
+  lantern.addColorStop(1, rgba(0, 0, 0, 0));
+  ctx.fillStyle = lantern;
+  ctx.fillRect(0, 0, width, height);
+  // Hole: punch through darkness with destination-out around the lantern.
+  ctx.save();
+  ctx.globalCompositeOperation = "destination-out";
+  const hole = ctx.createRadialGradient(lx, ly, 0, lx, ly, 210);
+  hole.addColorStop(0, rgba(0, 0, 0, 0.95));
+  hole.addColorStop(0.55, rgba(0, 0, 0, 0.55));
+  hole.addColorStop(1, rgba(0, 0, 0, 0));
+  ctx.fillStyle = hole;
+  ctx.fillRect(0, 0, width, height);
+  ctx.restore();
+
+  // Ghosts drifting upward with bob; respawn at bottom on expiry.
+  A.forEach((g) => {
+    g.life += 1;
+    if (g.y < -g.w * 2 || g.life > g.lifeMax) {
+      g.y = height + 60;
+      g.x = R() * width;
+      g.life = 0;
+      g.vy = -(0.1 + R() * 0.15);
+    }
+    g.x += Math.sin(time * 0.3 + g.bobPh) * 0.4 + g.vx * 0.1;
+    g.y += g.vy;
+    const bob = Math.sin(time * 2 + g.bobPh) * 5;
+    const fade = Math.sin((g.life / g.lifeMax) * Math.PI) * 0.5;
+    drawGhostShape(ctx, g.x, g.y + bob, g.w, g.w * 1.25, Math.max(0.06, fade));
+  });
+
+  // Red eye-pairs that blink on then off (reference .eyes blink keyframes).
+  const eyes = st.eyes;
+  if (R() < 0.006 && eyes.length < 3) {
+    eyes.push({ x: width * (0.08 + R() * 0.8), y: height * (0.12 + R() * 0.7), gap: 12 + R() * 12, life: 0, lifeMax: 260 });
+  }
+  for (let i = eyes.length - 1; i >= 0; i--) {
+    const e = eyes[i]!;
+    e.life += 1;
+    if (e.life > e.lifeMax) {
+      eyes.splice(i, 1);
+      continue;
+    }
+    const prog = e.life / e.lifeMax;
+    // Blink envelope: fade in, hold, quick squash-blink, fade out.
+    let al = prog < 0.14 ? prog / 0.14 : prog > 0.85 ? (1 - prog) / 0.15 : 1;
+    let sy = 1;
+    if (prog > 0.42 && prog < 0.46) sy = 0.12; // blink squash
+    al *= 0.9;
+    [-1, 1].forEach((side) => {
+      const ex = e.x + side * e.gap * 0.5;
+      const grad = ctx.createRadialGradient(ex, e.y, 0, ex, e.y, 14);
+      grad.addColorStop(0, rgba(255, 255, 255, 0.9 * al));
+      grad.addColorStop(0.4, rgba(255, 51, 71, 0.8 * al));
+      grad.addColorStop(1, rgba(122, 0, 16, 0));
+      ctx.fillStyle = grad;
+      ctx.save();
+      ctx.translate(ex, e.y);
+      ctx.scale(1.6, 0.9 * sy);
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, TAU);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  // Sudden lightning flash + optional ghost apparition (reference strike()).
+  st.nextFlash -= 1;
+  if (st.nextFlash <= 0 && st.flashSeq.length === 0) {
+    st.flashSeq = [0.5, 0, 0.75, 0, 0.28, 0];
+    st.flashIdx = 0;
+    st.nextFlash = 540 + R() * 900; // ~9-24s between strikes
+    if (R() < 0.5) {
+      A.push({
+        x: width * (0.05 + R() * 0.7),
+        y: height * (0.25 + R() * 0.5),
+        vy: -0.2,
+        vx: 0,
+        w: 60 + R() * 60,
+        bobPh: 0,
+        life: 0,
+        lifeMax: 26, // apparition lasts ~0.43s like the reference
+      });
+    }
+  }
+  if (st.flashSeq.length > 0) {
+    st.flash = st.flashSeq[st.flashIdx] ?? 0;
+    st.flashIdx += 1;
+    if (st.flashIdx >= st.flashSeq.length) st.flashSeq = [];
+    if (st.flash > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      ctx.fillStyle = rgba(214, 204, 255, st.flash);
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
+    }
+    ctx.fillStyle = rgba(0, 0, 0, 0);
+  } else {
+    st.flash = 0;
+  }
+}
+
+function clickSpooky(props: EffectProps, x: number, y: number): void {
+  // Clicking launches a flash + apparition at the click point.
+  const st = spookyStore();
+  st.flashSeq = [0.5, 0, 0.75, 0, 0.28, 0];
+  st.flashIdx = 0;
+  const A = storeFor<Ghost>("spooky-ghosts");
+  A.push({ x, y, vy: -0.3, vx: 0, w: 60, bobPh: 0, life: 0, lifeMax: 26 });
+  spawnBurst(x, y, 8, 280);
+}
+
+/* ---------- 12. Neon (glowing neon strokes flickering on and off) ---------- */
+
+interface NeonShape {
+  kind: "circuit";
+  x: number;
+  y: number;
+  len: number;
+  dir: number;
+  turnAfter: number;
+  hue: number;
+  phase: number;
+  flickRate: number;
+}
+
+function initNeon(_props?: Partial<EffectProps>): void {
+  const A = storeFor<NeonShape>("neon");
+  A.length = 0;
+  A.push(...mk(cnt(60), () => ({
+    kind: "circuit" as const,
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    len: 40 + R() * 130,
+    dir: Math.floor(R() * 4) * (Math.PI / 2),
+    turnAfter: 30 + R() * 120,
+    hue: [315, 190, 275, 160][Math.floor(R() * 4)]!,
+    phase: R() * TAU,
+    flickRate: 0.5 + R() * 1.5,
+  })));
+}
+
+function drawNeon(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark } = props;
+  const A = storeFor<NeonShape>("neon");
+  if (A.length === 0) initNeon(props as Partial<EffectProps>);
+  ctx.lineCap = "round";
+  A.forEach((s) => {
+    // Flicker envelope: mostly on, occasional off blink.
+    const blinkGate = Math.sin(time * s.flickRate + s.phase * 7) > -0.85;
+    // Cursor proximity boosts glow (interaction layer parity).
+    const dm = Math.hypot(s.x - mx, s.y - my);
+    const boost = dm < 200 ? 0.5 * (1 - dm / 200) : 0;
+    let alpha = (0.35 + boost) * (blinkGate ? 1 : 0.15);
+    if (!dark) alpha *= 0.55;
+    const px = Math.cos(s.dir);
+    const py = Math.sin(s.dir);
+    const ex = s.x + px * s.len;
+    const ey = s.y + py * s.len;
+    ctx.save();
+    ctx.shadowColor = hsl(s.hue, 100, 60, alpha);
+    ctx.shadowBlur = (18 + boost * 22) * (blinkGate ? 1 : 3);
+    ctx.strokeStyle = hsl(s.hue, 100, 72, alpha);
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(ex, ey);
+    ctx.stroke();
+    ctx.strokeStyle = hsl(s.hue, 100, 92, alpha * 0.9); // hot core
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+    // drift + turn
+    s.x += px * 0.25;
+    s.y += py * 0.25;
+    const travel = Math.hypot(s.x - (s.x - px), s.y - (s.y - py));
+    void travel;
+    if (R() < 0.02) s.dir += Math.PI / 2 * (R() < 0.5 ? 1 : -1);
+    if (s.x < -s.len || s.x > width + s.len || s.y < -s.len || s.y > height + s.len) {
+      s.x = R() * width;
+      s.y = R() * height;
+      s.turnAfter = 30 + R() * 120;
+    }
+    s.turnAfter -= 1;
+    if (s.turnAfter <= 0) {
+      s.turnAfter = 60 + R() * 150;
+      s.dir += Math.PI / 2 * (R() < 0.5 ? 1 : -1);
+    }
+  });
+}
+
+/* ---------- 13. Wind (flowing wind streaks with gust bursts) ---------- */
+
+interface WindStreak {
+  x: number;
+  y: number;
+  len: number;
+  z: number;
+  vx: number;
+  vy: number;
+  ph: number;
+}
+
+function initWind(_props?: Partial<EffectProps>): void {
+  const A = storeFor<WindStreak>("wind");
+  A.length = 0;
+  A.push(...mk(cnt(120), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    len: 10 + R() * 60,
+    z: R(),
+    vx: 1 + R() * 2.5,
+    vy: 0,
+    ph: R() * TAU,
+  })));
+}
+
+function drawWind(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, mvx, mvy, sv, wind, dark } = props;
+  const A = storeFor<WindStreak>("wind");
+  if (A.length === 0) initWind(props as Partial<EffectProps>);
+  // Global gusts follow the sine-driven wind + a slow breathing term.
+  const gust = 1 + Math.sin(time * 0.5) * 0.5;
+  A.forEach((p) => {
+    const dx = p.x - mx;
+    const dy = p.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 180) {
+      const f = 1 - d / 180;
+      p.vx += (-dy / d) * f * 1.6 + mvx * f * 0.08;
+      p.vy += (dx / d) * f * 1.6 + mvy * f * 0.08;
+    }
+    p.vy -= sv * 0.03;
+    p.vx *= 0.94;
+    p.vy *= 0.94;
+    const speed = p.vx + (0.9 + p.z * 1.4) * gust + wind * 2;
+    const px = p.x;
+    const py = p.y;
+    p.x += speed;
+    p.y += p.vy + Math.sin(time * 1.4 + p.ph) * 0.5;
+    if (p.x > width + 80) {
+      p.x = -80;
+      p.y = R() * height;
+    }
+    if (p.y < -40 || p.y > height + 40) p.y = R() * height;
+    const alpha = (0.12 + p.z * 0.3) * gust * 0.9;
+    ctx.strokeStyle = dark
+      ? hslaSafe(210, 40, 88, alpha)
+      : hslaSafe(210, 45, 40, alpha * 0.5);
+    ctx.lineWidth = 0.7 + p.z * 1.3;
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(px - Math.min(p.len, Math.abs(speed) * 6), py + Math.sin(time * 1.4 + p.ph) * 2);
+    ctx.stroke();
+  });
+}
+
+function hslaSafe(h: number, s: number, l: number, a: number): string {
+  return `hsla(${h},${s}%,${l}%,${a})`;
+}
+
+/* ---------- 14. Sunlight (warm golden rays + floating dust motes) ---------- */
+
+interface SunMote {
+  x: number;
+  y: number;
+  z: number;
+  ph: number;
+  drift: number;
+}
+
+function initSunlight(_props?: Partial<EffectProps>): void {
+  const A = storeFor<SunMote>("sunlight");
+  A.length = 0;
+  A.push(...mk(cnt(110), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    z: R(),
+    ph: R() * TAU,
+    drift: 0.1 + R() * 0.4,
+  })));
+}
+
+function drawSunlight(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, sp } = props;
+  const A = storeFor<SunMote>("sunlight");
+  if (A.length === 0) initSunlight(props as Partial<EffectProps>);
+  // Light origin: sun at 78% -8% like a hero glow; scroll slides it.
+  const sx = width * 0.78;
+  const sy = height * (-0.08) + sp * height * 0.2;
+  // Big warm haze.
+  const haze = ctx.createRadialGradient(sx, sy, 0, sx, sy, Math.max(width, height) * 0.75);
+  haze.addColorStop(0, rgba(255, 214, 140, dark ? 0.28 : 0.5));
+  haze.addColorStop(0.4, rgba(255, 190, 110, dark ? 0.12 : 0.22));
+  haze.addColorStop(1, rgba(255, 190, 110, 0));
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, 0, width, height);
+  // Rotating light rays (god-rays feel).
+  ctx.save();
+  ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
+  ctx.translate(sx, sy);
+  ctx.rotate(time * 0.02);
+  for (let i = 0; i < 9; i++) {
+    const an = (i / 9) * TAU;
+    const rayLen = Math.max(width, height) * 1.2;
+    const g = ctx.createLinearGradient(0, 0, Math.cos(an) * rayLen, Math.sin(an) * rayLen);
+    g.addColorStop(0, rgba(255, 220, 150, 0.14));
+    g.addColorStop(1, rgba(255, 220, 150, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(Math.cos(an - 0.045) * rayLen, Math.sin(an - 0.045) * rayLen);
+    ctx.lineTo(Math.cos(an + 0.045) * rayLen, Math.sin(an + 0.045) * rayLen);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+  // Dust motes drifting down-right, twinkling, cursor-reactive.
+  A.forEach((m) => {
+    const dx = m.x - mx;
+    const dy = m.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 160) {
+      const f = 1 - d / 160;
+      m.x += (dx / d) * f * 0.8;
+      m.y += (dy / d) * f * 0.8;
+    }
+    m.y += m.drift + Math.sin(time * 0.8 + m.ph) * 0.2;
+    m.x += 0.15 + m.z * 0.3;
+    if (m.y > height + 20) {
+      m.y = -20;
+      m.x = R() * width;
+    }
+    if (m.x > width + 20) m.x = -20;
+    const tw = 0.4 + 0.6 * Math.max(0, Math.sin(time * 1.3 + m.ph));
+    const r = 0.8 + m.z * 2;
+    ctx.fillStyle = rgba(255, 236, 180, (dark ? 0.5 : 0.75) * tw * (0.35 + m.z));
+    ctx.beginPath();
+    ctx.arc(m.x, m.y, r, 0, TAU);
+    ctx.fill();
+  });
+}
+
 /* ---------- registration ---------- */
 
 export const effects: EffectDefinition[] = [
@@ -683,6 +1192,10 @@ export const effects: EffectDefinition[] = [
   { id: "leaves", name: "Leaves", hue: 30, draw: drawLeaves, reset: initLeaves },
   { id: "rain", name: "Rain", hue: 205, draw: drawRain, click: clickRain, reset: initRain },
   { id: "flow", name: "Flow", hue: 180, draw: drawFlow, tint: true, reset: initFlow },
+  { id: "spooky", name: "Spooky", hue: 280, draw: drawSpooky, click: clickSpooky, reset: initSpooky },
+  { id: "neon", name: "Neon", hue: 315, draw: drawNeon, reset: initNeon },
+  { id: "wind", name: "Wind", hue: 210, draw: drawWind, reset: initWind },
+  { id: "sunlight", name: "Sunlight", hue: 45, draw: drawSunlight, reset: initSunlight },
 ];
 
 export function getEffect(id: string): EffectDefinition {

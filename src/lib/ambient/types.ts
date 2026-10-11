@@ -8,7 +8,11 @@ export type EffectId =
   | "embers"
   | "leaves"
   | "rain"
-  | "flow";
+  | "flow"
+  | "spooky"
+  | "neon"
+  | "wind"
+  | "sunlight";
 
 export interface Burst {
   x: number;
