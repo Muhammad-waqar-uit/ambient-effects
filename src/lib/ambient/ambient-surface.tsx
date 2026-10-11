@@ -294,7 +294,7 @@ export function AmbientSurface({
   return (
     <div
       ref={containerRef}
-      className={cn("relative", fullscreen && "fixed inset-0 -z-10", className)}
+      className={cn("relative", fullscreen && "fixed inset-0", className)}
       style={style}
       data-ambient="true"
       data-fullscreen={fullscreen ? "true" : "false"}
