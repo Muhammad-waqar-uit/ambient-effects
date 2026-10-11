@@ -39,7 +39,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "npx serve@latest out -l 3000",
     "lint": "eslint src/",
     "check": "npx tsc --noEmit && npm run lint && npm run build"
   },
