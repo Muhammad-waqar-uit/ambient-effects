@@ -1179,6 +1179,607 @@ function drawSunlight(props: EffectProps): void {
   });
 }
 
+interface StarsState {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+}
+
+function initStars(_props?: Partial<EffectProps>): void {
+  const A = storeFor<StarsState>("stars");
+  A.length = 0;
+  A.push(...mk(cnt(80), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 0.5,
+    vy: R() * 2 + 1,
+    life: 1,
+    hue: 250,
+  })));
+}
+
+function drawStars(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<StarsState>("stars");
+  if (A.length === 0) initStars();
+  // Falling stars.
+  A.forEach((s) => {
+    s.y += s.vy;
+    s.x += s.vx;
+    s.life -= 0.01;
+    const alpha = Math.max(0, s.life);
+    ctx.fillStyle = rgba(200, 150, 255, alpha * 0.8);
+    ctx.beginPath();
+    const size = 2 + Math.max(0, s.life) * 3;
+    ctx.ellipse(s.x, s.y, size, size * 0.5, 0, 0, TAU);
+    ctx.fill;
+    // Reset star at top when it falls off.
+    if (s.y > height + 20) {
+      s.y = -10;
+      s.x = R() * width;
+      s.vy = R() * 2 + 1;
+      s.vx = (R() - 0.5) * 0.5;
+      s.life = 1;
+    }
+    // Cursor repulsion.
+    const dx = s.x - mx;
+    const dy = s.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 200 && !reducedMotion) {
+      s.y -= (dy / d) * (1 - d / 200) * 2;
+      s.x -= (dx / d) * (1 - d / 200) * 2;
+    }
+  });
+}
+
+interface ConfettiExplosionState {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+  sparkCount: number;
+}
+
+function initConfettiExplosions(_props?: Partial<EffectProps>): void {
+  const A = storeFor<ConfettiExplosionState>("confetti-explosions");
+  A.length = 0;
+  A.push(...mk(cnt(20), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 10,
+    vy: (R() - 0.5) * 10,
+    life: 1,
+    hue: 330 + R() * 30,
+    sparkCount: Math.floor(R() * 20),
+  })));
+}
+
+function drawConfettiExplosions(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<ConfettiExplosionState>("confetti-explosions");
+  if (A.length === 0) initConfettiExplosions(props as Partial<EffectProps>);
+  // Confetti explosion bursts.
+  A.forEach((c) => {
+    c.life -= 0.1;
+    c.x += c.vx;
+    c.y += c.vy;
+    const alpha = Math.max(0, c.life);
+    // Sparks.
+    for (let i = 0; i < c.sparkCount; i++) {
+      const sx = c.x + Math.cos(time * 5 + i) * 5;
+      const sy = c.y + Math.sin(time * 5 + i) * 5;
+      ctx.fillStyle = dark ? rgba(255, 255, 255, alpha * 0.8) : rgba(255, 255, 255, alpha * 0.8);
+      ctx.beginPath();
+      ctx.arc(sx, sy, 2, 0, TAU);
+      ctx.fill;
+    }
+    // Reset when life expires.
+    if (c.life <= 0) {
+      c.x = R() * width;
+      c.y = R() * height;
+      c.life = 1;
+      c.vx = (R() - 0.5) * 10;
+      c.vy = (R() - 0.5) * 10;
+      c.hue = 330 + R() * 30;
+      c.sparkCount = Math.floor(R() * 20);
+    }
+    // Cursor repulsion.
+    const dx = c.x - mx;
+    const dy = c.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 200 && !reducedMotion) {
+      c.x -= (dx / d) * (1 - d / 200) * 2;
+      c.y -= (dy / d) * (1 - d / 200) * 2;
+    }
+  });
+}
+
+interface HyperspaceState {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+  speed: number;
+}
+
+function initHyperspace(_props?: Partial<EffectProps>): void {
+  const A = storeFor<HyperspaceState>("hyperspace");
+  A.length = 0;
+  A.push(...mk(cnt(30), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 3,
+    vy: (R() - 0.5) * 3,
+    life: 1,
+    hue: 340 + R() * 20,
+    speed: 0.5 + R() * 0.5,
+  })));
+}
+
+function drawHyperspace(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<HyperspaceState>("hyperspace");
+  if (A.length === 0) initHyperspace(props as Partial<EffectProps>);
+  // Hyperspace tunnel effect.
+  A.forEach((h) => {
+    h.x += h.vx;
+    h.y += h.vy;
+    // Wrap around.
+    if (h.x > width + 20) h.x = -20;
+    if (h.x < -20) h.x = width + 20;
+    if (h.y > height + 20) h.y = -20;
+    if (h.y < -20) h.y = height + 20;
+    ctx.strokeStyle = dark ? rgba(170, 100, 255, 0.5) : rgba(138, 43, 226, 0.5);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(h.x, h.y, 3 + Math.sin(time * 2) * 2, 8, 0, 0, TAU);
+    ctx.stroke;
+    // Cursor repulsion.
+    const dx = h.x - mx;
+    const dy = h.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 150 && !reducedMotion) {
+      h.x -= (dx / d) * (1 - d / 150) * 2;
+      h.y -= (dy / d) * (1 - d / 150) * 2;
+    }
+  });
+}
+
+interface LinksState {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+  connDist: number;
+}
+
+function initLinks(_props?: Partial<EffectProps>): void {
+  const A = storeFor<LinksState>("links");
+  A.length = 0;
+  A.push(...mk(cnt(40), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 2,
+    vy: (R() - 0.5) * 2,
+    life: 1 + R() * 2,
+    hue: 220 + R() * 30,
+    connDist: 50 + R() * 30,
+  })));
+}
+
+function drawLinks(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<LinksState>("links");
+  if (A.length === 0) initLinks(props as Partial<EffectProps>);
+  // Connecting links.
+  A.forEach((l) => {
+    l.life -= 0.02;
+    l.x += l.vx;
+    l.y += l.vy;
+    const alpha = Math.max(0, l.life);
+    ctx.strokeStyle = dark ? rgba(100, 150, 255, alpha) : rgba(50, 100, 200, alpha);
+    ctx.lineWidth = 1 + alpha * 2;
+    // Draw connections to nearby particles.
+    A.forEach((other) => {
+      const dx = l.x - other.x;
+      const dy = l.y - other.y;
+      const d = Math.hypot(dx, dy) || 1;
+      if (d < l.connDist && other !== l && other.life > 0) {
+        ctx.beginPath();
+        ctx.moveTo(l.x, l.y);
+        ctx.lineTo(other.x, other.y);
+        ctx.stroke;
+      }
+    });
+    // Reset when life expires.
+    if (l.life <= 0) {
+      l.x = R() * width;
+      l.y = R() * height;
+      l.life = 1 + R() * 2;
+      l.vx = (R() - 0.5) * 2;
+      l.vy = (R() - 0.5) * 2;
+      l.hue = 220 + R() * 30;
+      l.connDist = 50 + R() * 30;
+    }
+    // Cursor repulsion.
+    const dx = l.x - mx;
+    const dy = l.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 200 && !reducedMotion) {
+      l.x -= (dx / d) * (1 - d / 200) * 1;
+      l.y -= (dy / d) * (1 - d / 200) * 1;
+    }
+  });
+}
+
+interface MatrixState {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+  column: number;
+}
+
+function initMatrix(_props?: Partial<EffectProps>): void {
+  const A = storeFor<MatrixState>("matrix");
+  A.length = 0;
+  A.push(...mk(cnt(50), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 1.5,
+    vy: (R() - 0.5) * 1.5,
+    life: 1 + R() * 2,
+    hue: 200 + R() * 50,
+    column: Math.floor(R() * 10),
+  })));
+}
+
+function drawMatrix(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<MatrixState>("matrix");
+  if (A.length === 0) initMatrix(props as Partial<EffectProps>);
+  // Matrix digital rain.
+  A.forEach((m) => {
+    m.y += m.vy;
+    m.x += m.vx;
+    m.life -= 0.01;
+    const alpha = Math.max(0, m.life);
+    ctx.fillStyle = dark ? rgba(0, 255, 0, alpha * 0.6) : rgba(0, 100, 0, alpha * 0.6);
+    ctx.fillRect(m.x % 20, (m.y % 20) + (m.column * 20), 2, 10);
+    // Wrap around.
+    if (m.y > height + 20) {
+      m.y = -20;
+      m.x = (m.x + (m.column * 5)) % width;
+    }
+    // Cursor repulsion.
+    const dx = m.x - mx;
+    const dy = m.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 150 && !reducedMotion) {
+      m.x -= (dx / d) * (1 - d / 150) * 1;
+      m.y -= (dy / d) * (1 - d / 150) * 1;
+    }
+  });
+}
+
+interface ConfettiParadeState {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+  stripeOffset: number;
+}
+
+function initConfettiParade(_props?: Partial<EffectProps>): void {
+  const A = storeFor<ConfettiParadeState>("confetti-parade");
+  A.length = 0;
+  A.push(...mk(cnt(60), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 1,
+    vy: R() * 2 + 1,
+    life: 1,
+    hue: 330 + R() * 30,
+    stripeOffset: R() * 20,
+  })));
+}
+
+function drawConfettiParade(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<ConfettiParadeState>("confetti-parade");
+  if (A.length === 0) initConfettiParade(props as Partial<EffectProps>);
+  // Confetti parade strips.
+  A.forEach((p) => {
+    p.y += p.vy;
+    p.x += p.vx;
+    p.life -= 0.01;
+    p.stripeOffset += 0.5;
+    const alpha = Math.max(0, p.life);
+    ctx.strokeStyle = dark ? rgba(255, 255, 255, alpha * 0.5) : rgba(255, 255, 255, alpha * 0.5);
+    ctx.lineWidth = 2;
+    // Draw striped pattern.
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const sx = p.x + Math.cos(time + i) * (5 + i * 2);
+      const sy = p.y + (i * 8) + Math.sin(p.stripeOffset + i) * 2;
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(sx + 20, sy);
+    }
+    ctx.stroke;
+    // Reset when life expires.
+    if (p.life <= 0) {
+      p.x = R() * width;
+      p.y = -10;
+      p.life = 1;
+      p.vy = R() * 2 + 1;
+      p.hue = 330 + R() * 30;
+      p.stripeOffset = R() * 20;
+    }
+    // Cursor repulsion.
+    const dx = p.x - mx;
+    const dy = p.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 200 && !reducedMotion) {
+      p.x -= (dx / d) * (1 - d / 200) * 2;
+      p.y -= (dy / d) * (1 - d / 200) * 2;
+    }
+  });
+}
+
+interface Aurora2State {
+  x: number;
+  y: number;
+  ox: number;
+  oy: number;
+  phase: number;
+  speed: number;
+}
+
+function initAurora2(_props?: Partial<EffectProps>): void {
+  const A = storeFor<Aurora2State>("aurora-2");
+  A.length = 0;
+  A.push(...mk(cnt(80), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    ox: R() * WIDTH,
+    oy: R() * HEIGHT,
+    phase: R() * TAU,
+    speed: 0.5 + R() * 0.5,
+  })));
+}
+
+function drawAurora2(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark } = props;
+  const A = storeFor<Aurora2State>("aurora-2");
+  if (A.length === 0) initAurora2(props as Partial<EffectProps>);
+  // Aurora II ribbons.
+  A.forEach((a) => {
+    a.phase += a.speed;
+    a.x = (a.x + a.speed) % (width + 200) - 100;
+    a.y = height * 0.3 + Math.sin(a.phase) * 30;
+    // Cursor interaction.
+    const dx = a.x - mx;
+    const dy = a.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 200) {
+      const f = 1 - d / 200;
+      a.x -= (dx / d) * f * 0.5;
+    }
+    ctx.strokeStyle = dark ? rgba(100, 255, 218, 0.6) : rgba(0, 150, 255, 0.6);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(a.ox, a.oy);
+    ctx.lineTo(a.x, a.y);
+    ctx.stroke();
+    a.ox = a.x;
+    a.oy = a.y;
+  });
+}
+
+interface Twinkle2State {
+  x: number;
+  y: number;
+  alpha: number;
+  phase: number;
+}
+
+function initTwinkle2(_props?: Partial<EffectProps>): void {
+  const A = storeFor<Twinkle2State>("twinkle-2");
+  A.length = 0;
+  A.push(...mk(cnt(100), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    alpha: 0.3 + R() * 0.7,
+    phase: R() * TAU,
+  })));
+}
+
+function drawTwinkle2(props: EffectProps): void {
+  const { ctx, width, height, time, dark } = props;
+  const A = storeFor<Twinkle2State>("twinkle-2");
+  if (A.length === 0) initTwinkle2(props as Partial<EffectProps>);
+  // Twinkling stars II.
+  A.forEach((s) => {
+    s.phase += 0.1;
+    s.alpha = 0.3 + 0.7 * Math.abs(Math.sin(s.phase));
+    // Twinkle brighter periodically.
+    if (Math.sin(time * 2 + s.phase) > 0.8) {
+      s.alpha = 0.9 + 0.1 * R();
+    }
+    ctx.fillStyle = dark ? "rgba(255, 255, 255, " + s.alpha + ")" : "rgba(255, 255, 255, " + s.alpha + ")";
+    ctx.beginPath();
+    const size = 1 + Math.sin(s.phase) * 0.5;
+    ctx.ellipse(s.x, s.y, size, size, 0, 0, TAU);
+    ctx.fill;
+  });
+}
+
+interface Drift2State {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  spin: number;
+}
+
+function initDrift2(_props?: Partial<EffectProps>): void {
+  const A = storeFor<Drift2State>("drift-2");
+  A.length = 0;
+  A.push(...mk(cnt(60), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 1,
+    vy: R() * 0.5 + 0.5,
+    spin: (R() - 0.5) * 0.2,
+  })));
+}
+
+function drawDrift2(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, wind, reducedMotion } = props;
+  const A = storeFor<Drift2State>("drift-2");
+  if (A.length === 0) initDrift2(props as Partial<EffectProps>);
+  // Drifting particles II.
+  A.forEach((d) => {
+    d.x += d.vx + wind * 0.5;
+    d.y += d.vy;
+    d.spin += 0.01;
+    // Cursor repulsion.
+    const dx = d.x - mx;
+    const dy = d.y - my;
+    const dist = Math.hypot(dx, dy) || 1;
+    if (dist < 150) {
+      const f = 1 - dist / 150;
+      d.x += (dx / dist) * f * 1;
+      d.y += (dy / dist) * f * 1;
+    }
+    ctx.fillStyle = dark ? rgba(200, 200, 255, 0.5) : rgba(100, 100, 200, 0.5);
+    ctx.save();
+    ctx.translate(d.x, d.y);
+    ctx.rotate(d.spin);
+    ctx.fillRect(-2, -2, 4, 4);
+    ctx.restore();
+  });
+}
+
+interface Prism2State {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  phase: number;
+  colorIndex: number;
+}
+
+function initPrism2(_props?: Partial<EffectProps>): void {
+  const A = storeFor<Prism2State>("prism-2");
+  A.length = 0;
+  A.push(...mk(cnt(40), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 1.5,
+    vy: (R() - 0.5) * 1.5,
+    phase: R() * TAU,
+    colorIndex: Math.floor(R() * 6),
+  })));
+}
+
+function drawPrism2(props: EffectProps): void {
+  const { ctx, width, height, time, dark } = props;
+  const A = storeFor<Prism2State>("prism-2");
+  if (A.length === 0) initPrism2(props as Partial<EffectProps>);
+  // Prismatic drifting fragments II.
+  const colors = dark
+    ? ["#a855f7", "#f472b6", "#fbbf24", "#22c55e", "#3b82f6", "#8b5cf7"]
+    : ["#f97316", "#ec4899", "#eab308", "#10b981", "#3b82f6", "#6366f1"];
+  A.forEach((p) => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.phase += 0.05;
+    p.colorIndex = (p.colorIndex + 1) % 6;
+    ctx.fillStyle = colors[p.colorIndex];
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.phase);
+    ctx.fillRect(-8, -2, 16, 4);
+    ctx.restore();
+    // Wrap around.
+    if (p.x < 0) p.x = width + 8;
+    if (p.x > width + 8) p.x = -8;
+    if (p.y < 0) p.y = height + 8;
+    if (p.y > height + 8) p.y = -8;
+  });
+}
+
+interface Spark2State {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+}
+
+function initSpark2(_props?: Partial<EffectProps>): void {
+  const A = storeFor<Spark2State>("spark-2");
+  A.length = 0;
+  A.push(...mk(cnt(30), () => ({
+    x: R() * WIDTH,
+    y: R() * HEIGHT,
+    vx: (R() - 0.5) * 3,
+    vy: (R() - 0.5) * 3,
+    life: 1,
+    hue: 350 + R() * 20,
+  })));
+}
+
+function drawSpark2(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<Spark2State>("spark-2");
+  if (A.length === 0) initSpark2(props as Partial<EffectProps>);
+  // Sparks fading out II.
+  A.forEach((s) => {
+    s.life -= 0.02;
+    s.x += s.vx;
+    s.y += s.vy;
+    // Fade out.
+    const alpha = Math.max(0, s.life);
+    ctx.fillStyle = dark
+      ? rgba(255, 255, 255, alpha * 0.8)
+      : rgba(255, 255, 255, alpha * 0.8);
+    ctx.beginPath();
+    const size = 2 + Math.max(0, s.life) * 4;
+    ctx.ellipse(s.x, s.y, size, size * 0.5, 0, 0, TAU);
+    ctx.fill;
+    // Reset when life expires.
+    if (s.life <= 0) {
+      s.x = R() * width;
+      s.y = R() * height;
+      s.life = 1;
+    }
+    // Cursor repulsion.
+    const dx = s.x - mx;
+    const dy = s.y - my;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d < 100 && !reducedMotion) {
+      s.x -= (dx / d) * (1 - d / 100) * 5;
+      s.y -= (dy / d) * (1 - d / 100) * 5;
+    }
+  });
+}
+
 /* ---------- registration ---------- */
 
 export const effects: EffectDefinition[] = [
@@ -1196,6 +1797,17 @@ export const effects: EffectDefinition[] = [
   { id: "neon", name: "Neon", hue: 315, draw: drawNeon, reset: initNeon },
   { id: "wind", name: "Wind", hue: 210, draw: drawWind, reset: initWind },
   { id: "sunlight", name: "Sunlight", hue: 45, draw: drawSunlight, reset: initSunlight },
+  { id: "stars", name: "Stars", hue: 250, draw: drawStars, reset: initStars },
+  { id: "confetti-explosions", name: "Confetti Explosions", hue: 330, draw: drawConfettiExplosions, reset: initConfettiExplosions },
+  { id: "hyperspace", name: "Hyperspace", hue: 340, draw: drawHyperspace, reset: initHyperspace },
+  { id: "links", name: "Links", hue: 220, draw: drawLinks, reset: initLinks },
+  { id: "matrix", name: "Matrix", hue: 200, draw: drawMatrix, reset: initMatrix },
+  { id: "confetti-parade", name: "Confetti Parade", hue: 330, draw: drawConfettiParade, reset: initConfettiParade },
+  { id: "aurora-2", name: "Aurora II", hue: 100, draw: drawAurora2, reset: initAurora2 },
+  { id: "twinkle-2", name: "Twinkle II", hue: 340, draw: drawTwinkle2, reset: initTwinkle2 },
+  { id: "drift-2", name: "Drift II", hue: 200, draw: drawDrift2, reset: initDrift2 },
+  { id: "prism-2", name: "Prism II", hue: 280, draw: drawPrism2, reset: initPrism2 },
+  { id: "spark-2", name: "Spark II", hue: 350, draw: drawSpark2, reset: initSpark2 },
 ];
 
 export function getEffect(id: string): EffectDefinition {

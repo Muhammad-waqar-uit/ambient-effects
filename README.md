@@ -1,6 +1,6 @@
 # ambient-effects
 
-A lightweight library of ambient canvas effects for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, flow, spooky, neon, wind, or sunlight. Every effect reacts to the pointer, fires on click, and bends with scroll, matching the reference demo exactly.
+A lightweight library of ambient canvas effects for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, flow, spooky, neon, wind, or sunlight, or stars. Every effect reacts to the pointer, fires on click, and bends with scroll, matching the reference demo exactly.
 
 Built for **Next.js 16** + **React 19** + **TypeScript**. Runtime dependencies beyond React: [`clsx`](https://github.com/lukeed/clsx) and [`tailwind-merge`](https://github.com/dcastil/tailwind-merge) only (used by the `cn()` class helper).
 

@@ -12,7 +12,18 @@ export type EffectId =
   | "spooky"
   | "neon"
   | "wind"
-  | "sunlight";
+  | "sunlight"
+  | "stars"
+  | "confetti-explosions"
+  | "hyperspace"
+  | "links"
+  | "matrix"
+  | "confetti-parade"
+  | "aurora-2"
+  | "twinkle-2"
+  | "drift-2"
+  | "prism-2"
+  | "spark-2";
 
 export interface Burst {
   x: number;

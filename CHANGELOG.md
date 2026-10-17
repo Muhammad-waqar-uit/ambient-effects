@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0]
+### Added
+- `stars` (Stars): falling purple stars with cursor repulsion and sparkle effect, mimicking water droplet motion at bottom.
+## [0.2.0]
 
 ### Added
 - Full interaction layer on `AmbientSurface`: pointermove/pointerleave tracking with smoothed velocity, pointerdown bursts + 340px particle push, ArrowRight/ArrowLeft effect cycling, and scroll-driven velocity/progress/wind.
