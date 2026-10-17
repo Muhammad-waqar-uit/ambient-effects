@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `cosmic-planets` — planets on elliptical orbits with moons and a central star.
   - `emoji` — floating emoji confetti that spins, drifts and reacts to the pointer; click to spawn more.
 - `EffectGroup` (`Presets | Classic | Cosmic | Digital | Playful`) exported, and every `EffectDefinition` now carries a `group`, so custom pickers can be sectioned without hardcoding ids.
+- `background` and `backgroundBlur` props: any CSS colour, gradient or `url(...)` image renders on a layer behind the canvas, so effects stay on top of a photo or wash.
+- `--ambient-bg` and `--ambient-blur` CSS variables for the same layer, settable from plain CSS or Tailwind.
+- Themed 404, route error and global error screens for the demo app, each with a live effect behind it.
 - `docs/banner.svg` and a badge row for the README.
 - `SECURITY.md`, `CODE_OF_CONDUCT.md`, bug/feature issue forms, and a pull-request template.
 

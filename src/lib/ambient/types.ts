@@ -119,6 +119,13 @@ export interface AmbientSurfaceProps {
   showControls?: boolean;
   /** Whether the canvas should fill the viewport. Defaults to false. */
   fullscreen?: boolean;
+  /**
+   * CSS background for a layer behind the canvas: a colour, gradient, or
+   * `url(...)` image. Defaults to transparent.
+   */
+  background?: string;
+  /** Blur radius in px for the background layer. Defaults to 0. */
+  backgroundBlur?: number;
   /** Start in dark theme. Defaults to true (the reference starts dark). */
   dark?: boolean;
   /** Explicit override for the user's motion preference. When undefined, respects prefers-reduced-motion. */

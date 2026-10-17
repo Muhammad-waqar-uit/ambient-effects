@@ -201,6 +201,8 @@ export function Picker({ onPick }: { onPick: (id: EffectId) => void }) {
 | `onEffectChange` | `(id: EffectId) => void` | — | Called whenever the effect changes (select, arrows, `setEffect`). |
 | `showControls` | `boolean` | `true` | Renders the built-in picker in the top-right corner. |
 | `fullscreen` | `boolean` | `false` | Sizes the canvas to the viewport instead of its container. |
+| `background` | `string` | — | CSS background for a layer behind the canvas: colour, gradient, or `url(...)` image. |
+| `backgroundBlur` | `number` | `0` | Blur radius in px for that background layer. Effects still draw on top. |
 | `dark` | `boolean` | `true` | Dark-first palette. Toggling re-inits the effect. |
 | `reduceMotion` | `boolean` | `undefined` | When unset, follows `prefers-reduced-motion`; `true` halves particle density. |
 | `className` | `string` | — | Extra classes for the wrapper element. |
@@ -243,12 +245,36 @@ Effects only draw; the surface owns the background. In dark mode the canvas back
 
 ## Styling & theming
 
-The surface only sets what it needs to work: a wrapper with `position: relative` (or `fixed inset-0` when `fullscreen`), an absolutely-positioned canvas, and a neutral look for the built-in `<select>`. Everything else is yours to style with `className` and `style`, in any CSS framework — including Tailwind.
+The surface only sets what it needs to work: a wrapper with `position: relative` (or `fixed inset-0` when `fullscreen`), a background layer, an absolutely-positioned canvas, and a neutral look for the built-in `<select>`. Everything else is yours to style with `className` and `style`, in any CSS framework — including Tailwind.
+
+### Backgrounds
+
+`background` takes any CSS `background` value and renders it on a layer behind the canvas, so the effect always stays on top. Pair it with `backgroundBlur` for a frosted photo or a soft gradient wash:
+
+```tsx
+<AmbientSurface
+  defaultEffect="snow"
+  className="h-[60vh]"
+  background="url('/alps.jpg') center / cover no-repeat"
+  backgroundBlur={8}
+/>
+```
+
+```css
+/* Or from CSS, with no props */
+.hero [data-ambient] {
+  --ambient-bg: linear-gradient(140deg, #0f1024, #1c0f2e);
+}
+```
+
+Effects that paint their own sky (`night-sky`, `nebula`, `cosmos`-style) cover the layer; transparent effects like `snow`, `petals` and `links` let it show through. Together with `--ambient-filter` you can build a branded hero without touching effect code.
 
 ### CSS variables
 
 | Variable | Applies to | Default |
 | --- | --- | --- |
+| `--ambient-bg` | background layer (colour, gradient, `url(...)`) | `transparent` |
+| `--ambient-blur` | background layer blur radius (e.g. `8px`) | `0px` |
 | `--ambient-opacity` | canvas opacity | `1` |
 | `--ambient-filter` | canvas `filter` (hue-rotate, saturate, blur…) | `none` |
 | `--ambient-control-bg` | built-in `<select>` background | dark/light default |
@@ -333,6 +359,7 @@ npm run dev
 
 - `/` — searchable sidebar with all 45 effects, grouped, plus a light/dark toggle.
 - `/about` — install docs, props, effect catalogue.
+- unknown routes and runtime errors get themed `404` / error screens with a live effect behind them.
 
 ## Scripts
 

@@ -32,6 +32,8 @@ export function AmbientSurface({
   fullscreen = false,
   dark = true,
   reduceMotion,
+  background,
+  backgroundBlur,
   className,
   style,
 }: AmbientSurfaceProps) {
@@ -82,7 +84,7 @@ export function AmbientSurface({
 
   const baseProps = useCallback(
     (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): EffectProps => {
-      const { w, h, dpr } = cssSize(canvas);
+      const { w, h } = cssSize(canvas);
       const { mx, my, mvx, mvy } = mouse.current;
       const { sv, sp, wind } = scroll.current;
       return {
@@ -289,8 +291,11 @@ export function AmbientSurface({
     [switchEffect],
   );
 
+  const blurred = typeof backgroundBlur === "number" && backgroundBlur > 0;
+
   const wrapperStyle: React.CSSProperties = {
     ...(fullscreen ? { position: "fixed", inset: 0 } : { position: "relative" }),
+    overflow: "hidden",
     ...style,
   };
 
@@ -304,6 +309,20 @@ export function AmbientSurface({
       data-theme={dark ? "dark" : "light"}
       data-fullscreen={fullscreen ? "true" : "false"}
     >
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          background: background ?? "var(--ambient-bg, transparent)",
+          filter: blurred ? `blur(${backgroundBlur}px)` : "blur(var(--ambient-blur, 0px))",
+          // A hair of overscan hides the soft edge a blur leaves behind.
+          transform: "scale(1.04)",
+        }}
+      />
+
       <canvas
         ref={canvasRef}
         aria-label="Ambient background effect"
@@ -311,6 +330,7 @@ export function AmbientSurface({
         style={{
           position: "absolute",
           inset: 0,
+          zIndex: 1,
           display: "block",
           width: "100%",
           height: "100%",

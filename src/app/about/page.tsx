@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -110,6 +109,8 @@ const propsList = [
   ["onEffectChange", "(id: EffectId) => void", "Called whenever the effect changes (buttons, select, arrow keys)."],
   ["showControls", "true", "Renders the built-in <select> picker in the top-right corner."],
   ["fullscreen", "false", "Canvas is sized to the viewport instead of its container."],
+  ["background", "—", "CSS colour, gradient or url(...) image on a layer behind the canvas."],
+  ["backgroundBlur", "0", "Blur radius in px for that background layer; effects stay on top."],
   ["dark", "true", "Dark-first theme like the reference; toggling re-inits the effect."],
   ["reduceMotion", "undefined", "Respects prefers-reduced-motion when unset; true halves particle density."],
   ["className", "—", "Extra classes for the wrapper div."],
