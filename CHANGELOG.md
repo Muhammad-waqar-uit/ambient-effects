@@ -32,6 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The published package now resolves outside this repo: internal imports in `ambient-surface.tsx` were still using the `@/*` path alias, so consumers' bundlers could not load the entry point.
+- The component no longer depends on the host app's Tailwind build: wrapper, canvas and the built-in `<select>` are styled with inline CSS behind `--ambient-*` variables, so the surface works in any React app and is themeable from plain CSS.
+- Pointer and click coordinates are converted to canvas-local space, so effects react in the right place when the surface is embedded mid-page instead of pinned at the viewport origin.
+- `cn` is no longer exported from the package entry; the library no longer needs `clsx`/`tailwind-merge`, bringing runtime dependencies back to zero.
 - `package.json` `homepage` now points at the live demo and `bugs` at the real repository (it previously pointed at a non-existent org).
 - `react` moved from `dependencies` to `peerDependencies`, and `next` / `react-dom` moved to `devDependencies`, so installing the package no longer pulls a second React or an entire Next.js install.
 - `files` now ships `docs/banner.svg`, `SECURITY.md` and `CODE_OF_CONDUCT.md`; added `engines` and `sideEffects: false`; expanded npm keywords.

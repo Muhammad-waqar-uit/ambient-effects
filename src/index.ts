@@ -9,4 +9,3 @@ export type {
   AmbientSurfaceProps,
   Burst,
 } from "./lib/ambient/types";
-export { cn } from "./lib/utils";

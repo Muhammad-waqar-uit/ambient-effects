@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { AmbientSurfaceProps, EffectId, EffectProps } from "@/lib/ambient/types";
+import type { AmbientSurfaceProps, EffectId, EffectProps } from "./types";
 import {
   bursts,
   clearBursts,
@@ -12,10 +12,9 @@ import {
   resetEffect,
   setAmbientGlobals,
   spawnBurst,
-} from "@/lib/ambient/effects";
-import { cn } from "@/lib/utils";
+} from "./effects";
 
-export { effects } from "@/lib/ambient/effects";
+export { effects } from "./effects";
 
 const OFF = -999;
 
@@ -228,10 +227,10 @@ export function AmbientSurface({
 
     const onResize = () => size();
     const onPointerMove = (e: PointerEvent) => {
-      mouse.current.mx = e.clientX;
-      mouse.current.my = e.clientY;
-      const hint = document.getElementById("hint");
-      if (hint) hint.style.opacity = "0";
+      // Canvas-local coordinates: the surface can live anywhere on the page.
+      const rect = canvas.getBoundingClientRect();
+      mouse.current.mx = e.clientX - rect.left;
+      mouse.current.my = e.clientY - rect.top;
     };
     const onPointerLeave = () => {
       mouse.current.mx = OFF;
@@ -241,8 +240,9 @@ export function AmbientSurface({
       // The dock handles its own events; clicks there are inert.
       const t = e.target as HTMLElement | null;
       if (t && typeof t.closest === "function" && t.closest("[data-dock]")) return;
-      const x = e.clientX;
-      const y = e.clientY;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
       const effect = getEffect(currentEffectRef.current);
       pushParticles(effect.id, x, y);
       spawnBurst(x, y, effect.tint ? 24 : 12, effect.hue);
@@ -258,29 +258,27 @@ export function AmbientSurface({
         if (prev) switchEffect(prev.id);
       }
     };
-    const onScroll = () => {
-      if (window.scrollY > 20) {
-        const hint = document.getElementById("hint");
-        if (hint) hint.style.opacity = "0";
-      }
-    };
-
     window.addEventListener("resize", onResize);
+
+    // Container-driven sizing: the surface may mount before its parent has laid
+    // out (or change size later, e.g. a responsive hero), and window resize
+    // alone never catches that.
+    const observer = new ResizeObserver(() => size());
+    if (containerRef.current) observer.observe(containerRef.current);
     window.addEventListener("pointermove", onPointerMove);
     document.addEventListener("pointerleave", onPointerLeave);
     window.addEventListener("pointerdown", onPointerDown);
     window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       stopLoop();
       ctxRef.current = null;
+      observer.disconnect();
       window.removeEventListener("resize", onResize);
       window.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("scroll", onScroll);
     };
   }, [baseProps, size, startLoop, stopLoop, switchEffect]);
 
@@ -291,25 +289,61 @@ export function AmbientSurface({
     [switchEffect],
   );
 
+  const wrapperStyle: React.CSSProperties = {
+    ...(fullscreen ? { position: "fixed", inset: 0 } : { position: "relative" }),
+    ...style,
+  };
+
   return (
     <div
       ref={containerRef}
-      className={cn("relative", fullscreen && "fixed inset-0", className)}
-      style={style}
+      className={className}
+      style={wrapperStyle}
       data-ambient="true"
+      data-effect={currentEffect}
+      data-theme={dark ? "dark" : "light"}
       data-fullscreen={fullscreen ? "true" : "false"}
     >
       <canvas
         ref={canvasRef}
-        data-effect={currentEffect}
         aria-label="Ambient background effect"
         role="img"
-        className={fullscreen ? "pointer-events-none" : undefined}
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "block",
+          width: "100%",
+          height: "100%",
+          pointerEvents: fullscreen ? "none" : "auto",
+          // Consumer-tunable without touching the component.
+          opacity: "var(--ambient-opacity, 1)",
+          filter: "var(--ambient-filter, none)",
+        }}
       />
 
       {showControls && (
         <select
-          className="absolute top-4 right-4 z-10 rounded-lg border border-border bg-background/80 px-3 py-2 text-sm shadow-sm backdrop-blur-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 10,
+            padding: "0.5rem 0.75rem",
+            fontSize: "0.875rem",
+            lineHeight: 1.2,
+            fontFamily: "inherit",
+            color: "var(--ambient-control-fg, inherit)",
+            background: dark
+              ? "var(--ambient-control-bg, rgba(12, 12, 18, 0.78))"
+              : "var(--ambient-control-bg, rgba(255, 255, 255, 0.85))",
+            border: "1px solid var(--ambient-control-border, rgba(127, 127, 127, 0.35))",
+            borderRadius: "var(--ambient-control-radius, 0.5rem)",
+            boxShadow: "0 2px 10px rgb(0 0 0 / 0.18)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            cursor: "pointer",
+            colorScheme: dark ? "dark" : "light",
+          }}
           value={currentEffect}
           onChange={handleEffectSelect}
           aria-label="Select ambient effect"

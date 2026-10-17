@@ -185,7 +185,7 @@ export default function AboutPage() {
             <CardHeader>
               <CardTitle className="text-base">Lightweight</CardTitle>
               <CardDescription>
-                Only clsx and tailwind-merge beyond React — a single client component you drop behind any UI.
+                Zero runtime dependencies beyond React — a single client component you drop behind any UI.
               </CardDescription>
             </CardHeader>
           </Card>

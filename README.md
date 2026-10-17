@@ -4,7 +4,7 @@
 
 <br />
 
-**Ambient canvas effects for Next.js pages.** One component, 45 effects, pointer-aware, theme-aware, no particle engine to learn.
+**Ambient canvas effects for Next.js pages.** One component, 45 effects, pointer-aware, theme-aware, zero runtime dependencies.
 
 [![npm version](https://img.shields.io/npm/v/ambient-effects?style=for-the-badge&color=7c5cff&label=npm)](https://www.npmjs.com/package/ambient-effects)
 [![npm downloads](https://img.shields.io/npm/dm/ambient-effects?style=for-the-badge&color=22d3ee&label=downloads)](https://www.npmjs.com/package/ambient-effects)
@@ -23,7 +23,7 @@
 
 - **45 effects, one import.** Fireflies, snowfall, confetti, a starfield, a hacker terminal, Saturn's rings, an emoji storm — all behind a single `<AmbientSurface />`.
 - **Feels alive.** Every effect reads pointer position, pointer velocity and scroll, and most react to clicks.
-- **Batteries included, dependencies not.** Pure Canvas 2D. No tsParticles, no Three.js, no WebGL context to lose. The only runtime dependencies are `clsx` and `tailwind-merge` for the component's class join.
+- **Batteries included, dependencies not.** Pure Canvas 2D with **zero runtime dependencies** — no tsParticles, no Three.js, no WebGL context to lose. React is a peer dependency, nothing else.
 - **Predictable in production.** Fixed-step loop, DPR capped at 2, `prefers-reduced-motion` respected automatically, per-effect particle arrays reset on resize.
 - **Type-safe to the edge.** `EffectId` is a 45-member union — autocomplete every effect, and get a compile error when you typo one.
 - **Dark and light.** Every effect has a dark-first palette and a light-mode variant, so it works on a landing page and in a docs site.
@@ -40,7 +40,7 @@ pnpm add ambient-effects
 yarn add ambient-effects
 ```
 
-React 19 and Next.js 16 are the tested targets. The component is a client component, so it also works in plain React apps and the App Router alike.
+React 19 is the tested target, with Next.js 16 as the reference host. Because the surface is a plain client component with a self-contained canvas, it also drops into Vite, Remix or any React app — **no Tailwind required**.
 
 ## Quick start
 
@@ -206,11 +206,14 @@ export function Picker({ onPick }: { onPick: (id: EffectId) => void }) {
 | `className` | `string` | — | Extra classes for the wrapper element. |
 | `style` | `CSSProperties` | — | Inline styles for the wrapper element. |
 
-The wrapper is `position: relative` and fills its parent, so give the parent a height:
+The wrapper is `position: relative` and sizes to its own box, so give **the surface** a height (or a parent height plus `h-full`):
 
 ```tsx
+<AmbientSurface defaultEffect="nebula" showControls={false} className="h-[60vh]" />
+
+// or, inside an already-sized section:
 <div className="h-[60vh]">
-  <AmbientSurface defaultEffect="nebula" showControls={false} />
+  <AmbientSurface defaultEffect="nebula" style={{ height: "100%" }} />
 </div>
 ```
 
@@ -228,7 +231,7 @@ import {
 } from "ambient-effects";
 ```
 
-Also exported for custom UIs: `spawnBurst`, `drawBursts`, `clearBursts`, `pushParticles`, `resetEffect`, and the `cn` class helper.
+Also exported for custom UIs: `spawnBurst`, `drawBursts`, `clearBursts`, `pushParticles` and `resetEffect`.
 
 ## Theming
 
@@ -237,6 +240,75 @@ Effects only draw; the surface owns the background. In dark mode the canvas back
 ```tsx
 <AmbientSurface defaultEffect="petals" dark={false} className="mix-blend-screen" />
 ```
+
+## Styling & theming
+
+The surface only sets what it needs to work: a wrapper with `position: relative` (or `fixed inset-0` when `fullscreen`), an absolutely-positioned canvas, and a neutral look for the built-in `<select>`. Everything else is yours to style with `className` and `style`, in any CSS framework — including Tailwind.
+
+### CSS variables
+
+| Variable | Applies to | Default |
+| --- | --- | --- |
+| `--ambient-opacity` | canvas opacity | `1` |
+| `--ambient-filter` | canvas `filter` (hue-rotate, saturate, blur…) | `none` |
+| `--ambient-control-bg` | built-in `<select>` background | dark/light default |
+| `--ambient-control-fg` | `<select>` text colour | `inherit` |
+| `--ambient-control-border` | `<select>` border | `rgba(127,127,127,.35)` |
+| `--ambient-control-radius` | `<select>` radius | `0.5rem` |
+
+Set them from CSS, inline styles, or Tailwind arbitrary properties:
+
+```tsx
+{/* Tailwind: dim the effect and shift its palette, no custom CSS needed */}
+<AmbientSurface
+  defaultEffect="aurora"
+  showControls={false}
+  className="h-[60vh] rounded-2xl [--ambient-opacity:0.55] [--ambient-filter:hue-rotate(35deg)_saturate(1.2)]"
+/>
+```
+
+```css
+/* Plain CSS: style a specific effect, or all of them at once */
+[data-ambient] canvas {
+  --ambient-opacity: 0.8;
+}
+
+[data-ambient][data-effect="starfall"] canvas {
+  --ambient-filter: hue-rotate(-25deg);
+}
+```
+
+### Hooks for your own CSS
+
+The wrapper exposes attributes you can target without knowing internals:
+
+- `data-ambient="true"` — always present
+- `data-effect="<id>"` — the active effect
+- `data-theme="dark" | "light"` — matches the `dark` prop
+- `data-fullscreen="true" | "false"`
+
+That means per-effect or per-page overrides need no extra props:
+
+```css
+.hero [data-ambient] { background: #05060a; }
+.pricing [data-ambient] canvas { opacity: 0.35; }
+```
+
+### Tailwind
+
+There is nothing to install: all utilities above work because the component never hard-codes the properties they set. If you keep design tokens in Tailwind v4, map a theme token to a variable once:
+
+```css
+@theme {
+  --color-ambient-ink: #0b0b12;
+}
+```
+
+```tsx
+<AmbientSurface className="h-96 bg-ambient-ink/80" defaultEffect="nebula" />
+```
+
+For a deeper recolour, `--ambient-filter` beats recompiling palettes: every effect draws in HSL, so `hue-rotate` shifts the whole scene consistently.
 
 ## Accessibility & performance
 

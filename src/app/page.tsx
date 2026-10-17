@@ -3,7 +3,7 @@
 import pkg from "../../package.json";
 import { AmbientSurface, effects } from "@/lib/ambient/ambient-surface";
 import type { EffectGroup, EffectId } from "@/lib/ambient/types";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const GROUP_ORDER: EffectGroup[] = ["Presets", "Classic", "Cosmic", "Digital", "Playful"];
 
@@ -12,6 +12,15 @@ export default function Home() {
   const [isDark, setIsDark] = useState(true);
   const [query, setQuery] = useState("");
   const [panelOpen, setPanelOpen] = useState(false);
+
+  useEffect(() => {
+    const hide = () => {
+      const hint = document.getElementById("hint");
+      if (hint) hint.style.opacity = "0";
+    };
+    window.addEventListener("pointermove", hide, { once: true });
+    return () => window.removeEventListener("pointermove", hide);
+  }, []);
 
   const toggleTheme = () => {
     const next = !isDark;

@@ -62,10 +62,7 @@
     "lint": "eslint src/",
     "check": "npx tsc --noEmit && npm run lint && npm run build"
   },
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.1"
-  },
+  "dependencies": {},
   "peerDependencies": {
     "react": ">=19.0.0"
   },
@@ -74,12 +71,14 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "clsx": "^2.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "next": "16.4.0",
     "postcss": "^8.5.29",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "tailwind-merge": "^2.6.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^5"
   },

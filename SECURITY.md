@@ -49,4 +49,4 @@ Out of scope:
 
 ## Dependency policy
 
-The package has **two runtime dependencies** — `clsx` and `tailwind-merge`, both with zero transitive dependencies — used for the component's class join. Everything else (Next.js, React, the demo app) is a dev or peer dependency and is not installed by consumers. We keep it that way on purpose: fewer transitive packages, smaller supply-chain surface.
+The package has **zero runtime dependencies**. React is a peer dependency and Next.js plus the demo tooling are dev dependencies, so installing `ambient-effects` adds no transitive packages. We keep it that way on purpose: smaller supply-chain surface.

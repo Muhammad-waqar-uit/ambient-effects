@@ -183,7 +183,7 @@
     <line x1="38" y1="226" x2="91" y2="215" stroke="#f9a8d4" stroke-width="1" opacity="0.35"/>
   </g>
   <text x="600.0" y="168" text-anchor="middle" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="86" font-weight="700" letter-spacing="-3" fill="url(#title)">ambient-effects</text>
-  <text x="600.0" y="216" text-anchor="middle" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#a1a1c2">45 interactive canvas effects for Next.js — one component, no particle engine</text>
+  <text x="600.0" y="216" text-anchor="middle" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#a1a1c2">45 interactive canvas effects for Next.js — one component, zero runtime dependencies</text>
   <g font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" font-size="14" fill="#c7c7dd">
     <rect x="353" y="252" width="176" height="34" rx="17" fill="#ffffff12" stroke="#ffffff22"/>
     <text x="441" y="274" text-anchor="middle">npm i ambient-effects</text>
