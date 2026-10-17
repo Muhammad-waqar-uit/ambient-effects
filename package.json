@@ -1,6 +1,6 @@
 {
   "name": "ambient-effects",
-  "version": "0.5.0",
+  "version": "0.4.0",
   "private": false,
   "license": "MIT",
   "description": "45 interactive ambient canvas effects for Next.js and React — fireflies, confetti, aurora, starfall, matrix, hacker, emoji and more.",

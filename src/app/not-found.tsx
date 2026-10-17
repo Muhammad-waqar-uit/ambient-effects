@@ -1,11 +1,6 @@
+"use client";
 import Link from "next/link";
 import { AmbientSurface } from "@/lib/ambient/ambient-surface";
-
-export const metadata = {
-  title: "404 — ambient-effects",
-  description: "This page drifted out of orbit.",
-};
-
 export default function NotFound() {
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#05060a] text-white">

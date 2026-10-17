@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { SiteHeader } from "@/components/ui/site-header";
 import { Button } from "@/components/ui/button";
@@ -9,12 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CodeBlock } from "@/components/ui/code-block";
-
-export const metadata = {
-  title: "About — ambient-effects",
-  description:
-    "Docs and install for ambient-effects: 45 interactive ambient canvas effects for Next.js pages.",
-};
 
 const install = "npm install ambient-effects";
 
@@ -28,7 +24,7 @@ export default function Page() {
   );
 }`;
 
-const effectGroups = [
+const defaultEffectGroups = [
   {
     group: "Presets",
     items: [
@@ -101,8 +97,6 @@ const effectGroups = [
   },
 ] as const;
 
-
-
 const propsList = [
   ["defaultEffect", '"fireflies"', "Initial effect for the uncontrolled component."],
   ["effect", "EffectId", "Controlled effect id; makes the component fully controlled."],
@@ -138,7 +132,7 @@ export default function AboutPage() {
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-muted-foreground text-pretty">
             Drop <code className="rounded bg-chip px-1.5 py-0.5 text-sm">AmbientSurface</code> into any
-            client page and get fireflies, snow, fireworks, matrix, aurora, starfall, hacker, Saturn’s rings and 37 more — every
+            client page and get fireflies, snow, fireworks, matrix, aurora, starfall, hacker, Saturn rings and 37 more — every
             effect reacts to the pointer, fires on click, and bends with scroll.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -199,7 +193,7 @@ export default function AboutPage() {
             Each renders on a single fixed canvas; switch from the sidebar, the select, or arrow keys.
           </p>
           <div className="mt-8 space-y-10">
-            {effectGroups.map(({ group, items }) => (
+            {defaultEffectGroups.map(({ group, items }) => (
               <section key={group}>
                 <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                   {group} · {items.length}
