@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. The page renders the fireflies effect with a live effect switcher.
+Open `http://localhost:3000`. The page renders a searchable, grouped sidebar with all 45 effects; `/about` is the docs page.
 
 ## Prerequisites
 
@@ -64,7 +64,8 @@ Run all three in sequence. A change that breaks any one of them is not ready.
    - Add a `createX()` factory that returns initial particle state given width/height.
    - Implement `drawX(props: EffectProps & { particles: X[] })`.
    - Register it: `{ id: "newEffect", name: "New Effect", draw: withParticles("newEffect", drawX) }` in the `effects` array.
-3. Add the effect to the README effects table.
+3. Add the effect to the README table for its group and to the `/about` list.
+4. Add a `CHANGELOG.md` entry under `[Unreleased]`.
 4. Add a changelog entry under `[Unreleased]`.
 5. Test it in the dev server.
 
@@ -90,4 +91,6 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 ## Getting help
 
-Open an issue for questions, bug reports, or feature suggestions. For usage questions, include your code snippet and the effect you're trying to use.
+Open an issue for questions, bug reports, or effect suggestions. For usage questions, include your code snippet and the effect you're trying to use.
+
+By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues should follow [SECURITY.md](SECURITY.md) — please do not open a public issue for them.

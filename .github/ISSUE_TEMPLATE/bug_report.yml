@@ -1,0 +1,114 @@
+name: Bug report
+description: Something renders wrong, crashes, or behaves unexpectedly.
+title: "[Bug]: "
+labels: ["bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. A short, reproducible description gets fixed much faster.
+        Please don't use this form for security issues — see [SECURITY.md](../blob/main/SECURITY.md).
+
+  - type: input
+    id: version
+    attributes:
+      label: ambient-effects version
+      description: Output of `npm ls ambient-effects`, or the version in package.json.
+      placeholder: 0.5.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: effect
+    attributes:
+      label: Effect
+      description: Which effect is affected?
+      options:
+        - Not effect-specific
+        - ambient
+        - big-circles
+        - bubbles
+        - confetti
+        - confetti-cannon
+        - confetti-explosions
+        - confetti-falling
+        - confetti-parade
+        - fire
+        - fireflies
+        - fireworks
+        - fountain
+        - hyperspace
+        - links
+        - matrix
+        - sea-anemone
+        - snow
+        - squares
+        - stars
+        - triangles
+        - constellation
+        - stardust
+        - embers
+        - leaves
+        - rain
+        - flow
+        - spooky
+        - neon
+        - wind
+        - sunlight
+        - aurora
+        - nebula
+        - starfall
+        - star-drops
+        - night-sky
+        - space-rocks
+        - saturn-ring
+        - cosmic-planets
+        - glitch
+        - hacker
+        - music-bars
+        - radio-glitch
+        - petals
+        - ripple
+        - emoji
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: A code snippet, reproduction link (StackBlitz/CodeSandbox), or exact steps.
+      render: tsx
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 141 / macOS 15
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Theme
+      options:
+        - Dark
+        - Light
+        - Both
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots, recordings, console output
+      description: Drag files in here. Console errors and recordings are very helpful for rendering bugs.

@@ -1,9 +1,9 @@
 {
   "name": "ambient-effects",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": false,
   "license": "MIT",
-  "description": "Ambient canvas effects for Next.js pages — fireflies, snow, bubbles, confetti, and more.",
+  "description": "45 interactive ambient canvas effects for Next.js and React — fireflies, confetti, aurora, starfall, matrix, hacker, emoji and more.",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -13,29 +13,48 @@
       "import": "./src/index.ts"
     }
   },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "keywords": [
-    "nextjs",
-    "react",
-    "canvas",
+    "ambient-effects",
     "ambient",
     "background",
+    "background-animation",
+    "canvas",
+    "canvas-effects",
+    "particles",
+    "particle-effects",
+    "nextjs",
+    "nextjs-16",
+    "react",
+    "react-19",
+    "hero-section",
+    "landing-page",
     "animation",
-    "effects",
     "fireflies",
     "snow",
     "confetti",
-    "typescript"
+    "starfield",
+    "aurora",
+    "matrix",
+    "emoji",
+    "typescript",
+    "ui-library"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Muhammad-waqar-uit/ambient-effects.git"
   },
-  "homepage": "https://github.com/Muhammad-waqar-uit/ambient-effects#readme",
+  "homepage": "https://ambient-effects.vercel.app",
+  "bugs": {
+    "url": "https://github.com/Muhammad-waqar-uit/ambient-effects/issues"
+  },
+  "author": "Muhammad Waqar (https://github.com/Muhammad-waqar-uit)",
   "publishConfig": {
     "access": "public"
   },
-  "bugs": "https://github.com/ambient-effects/ambient-effects/issues",
-  "author": "",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -43,32 +62,38 @@
     "lint": "eslint src/",
     "check": "npx tsc --noEmit && npm run lint && npm run build"
   },
-  "dependencies": {
-    "clsx": "^2.1.1",
-    "next": "16.4.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
-    "tailwind-merge": "^2.6.1"
+  "dependencies": {},
+  "peerDependencies": {
+    "react": ">=19.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "clsx": "^2.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
+    "next": "16.4.0",
     "postcss": "^8.5.29",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwind-merge": "^2.6.1",
     "tailwindcss": "^4.3.3",
     "typescript": "^5"
   },
   "files": [
-    "src",
+    "src/index.ts",
+    "src/lib",
+    "docs/banner.svg",
     "next.config.ts",
     "tsconfig.json",
     "eslint.config.mjs",
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
     "LICENSE"
   ]
 }

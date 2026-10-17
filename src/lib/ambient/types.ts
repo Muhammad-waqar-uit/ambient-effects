@@ -1,8 +1,26 @@
 export type EffectId =
-  | "fireflies"
-  | "snow"
+  // Presets — parity with the tsParticles preset catalogue
+  | "ambient"
+  | "big-circles"
   | "bubbles"
   | "confetti"
+  | "confetti-cannon"
+  | "confetti-explosions"
+  | "confetti-falling"
+  | "confetti-parade"
+  | "fire"
+  | "fireflies"
+  | "fireworks"
+  | "fountain"
+  | "hyperspace"
+  | "links"
+  | "matrix"
+  | "sea-anemone"
+  | "snow"
+  | "squares"
+  | "stars"
+  | "triangles"
+  // Classic — the original hand-written set
   | "constellation"
   | "stardust"
   | "embers"
@@ -12,7 +30,28 @@ export type EffectId =
   | "spooky"
   | "neon"
   | "wind"
-  | "sunlight";
+  | "sunlight"
+  // Cosmic — skies, stars and planets
+  | "aurora"
+  | "nebula"
+  | "starfall"
+  | "star-drops"
+  | "night-sky"
+  | "space-rocks"
+  | "saturn-ring"
+  | "cosmic-planets"
+  // Digital — screens, signals and sound
+  | "glitch"
+  | "hacker"
+  | "music-bars"
+  | "radio-glitch"
+  // Playful — petals, water and pictures
+  | "petals"
+  | "ripple"
+  | "emoji";
+
+/** Sidebar / selector grouping for the built-in effects. */
+export type EffectGroup = "Presets" | "Classic" | "Cosmic" | "Digital" | "Playful";
 
 export interface Burst {
   x: number;
@@ -59,6 +98,8 @@ export interface EffectDefinition {
   draw: EffectFn;
   /** Base hue used for click bursts. */
   hue: number;
+  /** Optional grouping used by the selector and demo sidebar. Defaults to "Presets". */
+  group?: EffectGroup;
   /** When true, the canvas is tint-filled (not cleared) each frame — for trail effects. */
   tint?: boolean;
   /** Effect-specific pointerdown behavior (e.g. pop bubbles, splash rain). */
@@ -78,6 +119,13 @@ export interface AmbientSurfaceProps {
   showControls?: boolean;
   /** Whether the canvas should fill the viewport. Defaults to false. */
   fullscreen?: boolean;
+  /**
+   * CSS background for a layer behind the canvas: a colour, gradient, or
+   * `url(...)` image. Defaults to transparent.
+   */
+  background?: string;
+  /** Blur radius in px for the background layer. Defaults to 0. */
+  backgroundBlur?: number;
   /** Start in dark theme. Defaults to true (the reference starts dark). */
   dark?: boolean;
   /** Explicit override for the user's motion preference. When undefined, respects prefers-reduced-motion. */
