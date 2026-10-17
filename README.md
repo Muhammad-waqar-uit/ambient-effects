@@ -6,7 +6,7 @@
 
 **Ambient canvas effects for Next.js pages.** One component, 45 effects, pointer-aware, theme-aware, zero runtime dependencies.
 
-[![npm version](https://img.shields.io/npm/v/ambient-effects/0.4.0?style=for-the-badge&color=7c5cff&label=npm)](https://www.npmjs.com/package/ambient-effects)
+![npm version](https://img.shields.io/badge/npm-0.4.0-7c5cff?style=for-the-badge)
 [![npm downloads](https://img.shields.io/npm/dm/ambient-effects?style=for-the-badge&color=22d3ee&label=downloads)](https://www.npmjs.com/package/ambient-effects)
 [![license](https://img.shields.io/badge/license-MIT-3fb950?style=for-the-badge)](LICENSE)
 [![stars](https://img.shields.io/github/stars/Muhammad-waqar-uit/ambient-effects?style=for-the-badge&color=f5c542&label=stars)](https://github.com/Muhammad-waqar-uit/ambient-effects/stargazers)
