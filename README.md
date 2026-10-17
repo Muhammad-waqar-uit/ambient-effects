@@ -1,13 +1,13 @@
 # ambient-effects
 
-A lightweight library of ambient canvas effects for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain, flow, spooky, neon, wind, or sunlight, or stars. Every effect reacts to the pointer, fires on click, and bends with scroll, matching the reference demo exactly.
+A lightweight library of **36 interactive ambient canvas effects** for Next.js pages. Drop it in and pick an effect — fireflies, snow, bubbles, confetti, ambient, big circles, confetti cannon, explosions, falling and parade, fire, fireworks, fountain, hyperspace, links, matrix, sea anemone, squares, stars, triangles, aurora, nebula, petals, glitch, ripple, starfall, and the original set (constellation, stardust, embers, leaves, rain, flow, spooky, neon, wind, sunlight). Every effect reacts to the pointer, fires on click, and bends with scroll.
 
 Built for **Next.js 16** + **React 19** + **TypeScript**. Runtime dependencies beyond React: [`clsx`](https://github.com/lukeed/clsx) and [`tailwind-merge`](https://github.com/dcastil/tailwind-merge) only (used by the `cn()` class helper).
 
 [![npm version](https://img.shields.io/npm/v/ambient-effects)](https://www.npmjs.com/package/ambient-effects)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Current release: v0.3.0** — 4 new effects (Spooky, Neon, Wind, Sunlight), full interaction layer (pointer, click, scroll, arrow keys), faithful port of all effects including Rain puddles and Flow trails, `src/index.ts` barrel exported correctly, shadcn-style docs at `/about`. See [CHANGELOG.md](CHANGELOG.md) for the complete list.
+**Current release: v0.4.0** — 22 new effects (36 total), including full parity with the tsParticles preset catalogue (ambient, big circles, confetti cannon/explosions/falling/parade, fire, fireworks, fountain, hyperspace, links, matrix, sea anemone, squares, triangles) plus originals (aurora, nebula, petals, glitch, ripple) and the signature **Starfall** effect — a drifting, twinkling sky where purple stars fall and splash into water rings. See [CHANGELOG.md](CHANGELOG.md) for the complete list.
 
 ## Quick start
 
@@ -44,7 +44,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000` — `/` is a verbatim replica of the reference "10 Ambient Page Effects" page (fixed canvas, glass dock, name label, hint), and `/about` is the docs landing page.
+Open `http://localhost:3000` — `/` is the replica demo page (fixed canvas, glass dock with all 36 effects, name label, hint, theme toggle), and `/about` is the docs landing page.
 
 ## Usage
 
@@ -64,38 +64,68 @@ Open `http://localhost:3000` — `/` is a verbatim replica of the reference "10 
 
 ### Effects
 
-The built-in effects are:
+All 36 built-in effects, grouped. Every id is a member of the `EffectId` union, so `defaultEffect` is type-checked.
+
+#### Preset set — parity with the tsParticles preset catalogue
 
 | Effect | Description |
 |--------|-------------|
-| `fireflies` | Drifting glowing particles that seek the pointer; additive glow in dark mode. |
-| `snow` | Layered snowfall with cursor repulsion, wind drift and scroll gusts. |
+| `ambient` | Huge, slow soft light blobs that breathe and drift; the pointer nudges them aside. |
+| `big-circles` | A few enormous outlined rings with dashed inner circles and rotating arcs. |
 | `bubbles` | Rising translucent bubbles; click near one to pop it into a burst. |
 | `confetti` | Falling colored rectangles with rotation; scatters away from the pointer. |
+| `confetti-cannon` | A cannon at the bottom that fires confetti arcs every couple of seconds; click to fire one from your pointer. |
+| `confetti-explosions` | Radial confetti bursts that erupt at random spots; click for an instant blast. |
+| `confetti-falling` | Steady, dense confetti rain with sway, spin and pointer repulsion. |
+| `confetti-parade` | Braided ribbons of confetti streaming sideways across the screen. |
+| `fire` | A rising wall of flames with hot cores, cooling tips and a glowing floor. |
+| `fireflies` | Drifting glowing particles that seek the pointer; additive glow in dark mode. |
+| `fireworks` | Rockets launch from the bottom, trail upward, then burst into 100+ spark streaks with gravity; click to detonate at the pointer. |
+| `fountain` | A water jet that arcs up from the center and lands in expanding splash rings. |
+| `hyperspace` | Star streaks rushing outward from a vanishing point that follows your pointer. |
+| `links` | A drifting node network joined by lines, with extra links reaching to the cursor. |
+| `matrix` | Digital rain: falling glyph columns with bright heads, slowly mutating characters, and magenta glyphs near the pointer. |
+| `sea-anemone` | Glowing tendrils anchored to the sea floor that sway, bend away from the pointer, and end in light. |
+| `snow` | Layered snowfall with cursor repulsion, wind drift and scroll gusts. |
+| `squares` | A grid of rotating neon squares that pulse, spin and dodge the pointer. |
+| `stars` | A twinkling starfield with parallax depth; click to send a shooting star across the sky. |
+| `triangles` | Drifting, rotating triangles with soft fills and pointer repulsion. |
+
+#### Original effects
+
+| Effect | Description |
+|--------|-------------|
 | `constellation` | Stars linked by lines, with extra connections reaching to the cursor. |
 | `stardust` | Sparkling dust whose emitters track fast pointer movement. |
 | `embers` | Rising glowing embers with additive blending and bottom-fade intensity. |
 | `leaves` | Falling leaves with rotation, sway and wind-driven drift. |
 | `rain` | Slanted rain streaks that pool into expanding ripple puddles; click for a large splash. |
 | `flow` | A tint-trail flow field that swirls around the cursor. |
-| `spooky` | Halloween lantern: cursor-carved low light, drifting ghosts, blinking red eye-pairs, sudden lightning flashes with apparitions (from "Morgan Hollow"). Click to strike. |
+| `spooky` | Halloween lantern: cursor-carved low light, drifting ghosts, blinking red eye-pairs, sudden lightning flashes with apparitions. Click to strike. |
 | `neon` | Glowing neon circuit strokes with realistic on/off flicker that intensify near the cursor. |
 | `wind` | Gusts of wind streaks that swirl around the pointer and bend with scroll wind. |
 | `sunlight` | Warm god-rays from a sun origin, floating dust motes, and a scroll-slanted haze. |
+| `aurora` | Shimmering polar curtains with vertical ray structure; the pointer warps the curtain locally. |
+| `nebula` | Volumetric space clouds with embedded twinkling stars; the pointer pushes the clouds. |
+| `petals` | Blossom petals fluttering down, tumbling and flipping as they fall. |
+| `glitch` | A signal trace with RGB-split fringes, data bars and scan bands that tear into displaced slices. Click to force a burst. |
+| `ripple` | Calm water: expanding elliptical rings that spawn on their own, on fast pointer movement, and on click. |
+| `starfall` | Signature effect — a slow drifting, twinkling sky with purple stars that fall, streak, and splash into expanding water rings where they land. Click to drop a pair from the top. |
 
 ### Interactions
-| Gesture | Behavior |
-|---------|
-| Move | Cursor position and velocity are smoothed into particle physics; the hint fades after the first move. |
-| Click | Sparks burst at the pointer, nearby particles get shoved away (within 340px); bubbles pop and rain splits large puddles. |
-| Scroll | Scroll velocity slants particles; wind follows a sine of scroll progress. |
-| Arrow keys | ArrowRight/ArrowLeft cycle the ten effects. |
 
-> The reference page is 600vh tall so scroll interactions have room; give your page similar height when you use scroll-reactive behavior.
+| Gesture | Behavior |
+|---------|---------|
+| Move | Cursor position and velocity are smoothed into particle physics; the hint fades after the first move. |
+| Click | Sparks burst at the pointer and nearby particles get shoved away (within 340px); bubbles pop, rain splits puddles, fireworks detonate, cannons fire, glitch tears. |
+| Scroll | Scroll velocity slants particles; wind follows a sine of scroll progress. |
+| Arrow keys | ArrowRight/ArrowLeft cycle through all 36 effects. |
+
+> The demo page is 600vh tall so scroll interactions have room; give your page similar height when you use scroll-reactive behavior.
 
 ### Theme
 
-`dark` defaults to `true` (the reference starts dark and never reads `prefers-color-scheme`). Set `dark={false}` to start light; toggling the attribute re-initializes the current effect so lightness dimming applies immediately.
+`dark` defaults to `true`. Set `dark={false}` to start light; toggling the attribute re-initializes the current effect so lightness dimming applies immediately. Trail effects (`flow`, `aurora`) tint-fill instead of clearing each frame, so their persistence adapts to the theme too.
 
 ### Fullscreen mode
 
@@ -113,7 +143,7 @@ The component automatically reads `prefers-reduced-motion` when `reduceMotion` i
 <AmbientSurface reduceMotion={true} />
 ```
 
-When reduced motion is active, particle density is halved and animation continues — matching the reference's `cnt()` scaling rather than freezing to a static frame.
+When reduced motion is active, particle density is halved and animation speed drops for the effects that key off time — matching the reference's `cnt()` scaling rather than freezing to a static frame.
 
 ## Developer experience
 
@@ -123,8 +153,9 @@ When reduced motion is active, particle density is halved and animation continue
 |---------|-------------|
 | `npm run dev` | Start the Next.js dev server (Turbopack). |
 | `npm run build` | Production build. |
-| `npm run start` | Start the production server. |
+| `npm run start` | Serve the production build. |
 | `npm run lint` | Run ESLint. |
+| `npm run check` | Type check + lint + build in one go. |
 
 ### Quality checks
 
@@ -161,7 +192,7 @@ ambient-effects/
 │   │   └── ambient/
 │   │       ├── types.ts      # EffectId, EffectProps, EffectDefinition, AmbientSurfaceProps
 │   │       ├── ambient-surface.tsx   # Main "use client" component
-│   │       └── effects.ts     # All 14 effect implementations
+│   │       └── effects.ts     # All 36 effect implementations
 │   └── app/                  # Next.js app (demo + entrypoint)
 │       ├── page.tsx
 │       ├── layout.tsx
@@ -190,7 +221,7 @@ export type {
 ```
 
 - `AmbientSurface` — the React component.
-- `effects` — the array of all `EffectDefinition` entries (useful for custom UI).
+- `effects` — the array of all 36 `EffectDefinition` entries (useful for custom UI).
 - `getEffect(id)` — look up an effect by id, with a safe fallback to fireflies.
 
 ## Browser support
@@ -198,12 +229,14 @@ export type {
 - Modern evergreen browsers (Chrome, Firefox, Safari, Edge — latest two versions).
 - Requires `CanvasRenderingContext2D` and `requestAnimationFrame`.
 - Respects `prefers-reduced-motion` automatically.
+- One effect (`glitch`) uses self-`drawImage` on the canvas for slice displacement; all others are pure shape/line drawing.
 
 ## Accessibility
 
 - The canvas has `role="img"` and an `aria-label`.
 - The effect selector is a real `<select>` with `aria-label`.
-- Reduced-motion users get static frames automatically.
+- The demo dock uses `role="toolbar"` with `aria-pressed` state per effect.
+- Reduced-motion users get lighter densities and slower motion automatically.
 
 ## License
 
@@ -216,14 +249,14 @@ Contributions are welcome. Please read the guidelines below before opening a PR.
 ### Adding a new effect
 
 1. Add the effect id to the `EffectId` union in `src/lib/ambient/types.ts`.
-2. Implement the draw function in `src/lib/ambient/effects.ts`. Follow the existing pattern:
-   - Define a particle interface.
-   - Create a `createX()` factory that returns initial particle state.
-   - Implement `drawX(props: EffectProps & { particles: X[] })`.
-   - Register it with `withParticles("effectId", drawX)` in the `effects` array.
-3. Add the effect to the `effects` export array.
-4. Add it to the README effects table.
-5. Test it in the dev server — switch to it via the dropdown and verify it runs smoothly.
+2. Implement the effect in `src/lib/ambient/effects.ts`. Follow the file's pattern:
+   - Declare a particle interface (`interface Firefly { x, y, vx, vy, ... }`).
+   - Write an `initX()` that resets the particle store for the effect id.
+   - Write a `drawX(props: EffectProps)` that reads the store, steps physics, and draws.
+   - Register it in the `effects` array: `{ id, name, hue, draw, click?, reset?, tint? }`.
+3. Particle state lives in the shared store keyed by effect id (`storeFor<T>("my-effect")`); auxiliary state (timers, queues) uses `stateFor<T>("my-effect", ...)` — both are cleared automatically by `resetEffect`.
+4. Add a row to the README effects table and a line under `[Unreleased]` in `CHANGELOG.md`.
+5. Test it in the dev server — switch to it from the dock and verify it runs smoothly, reacts to the pointer, and looks right in both themes.
 
 ### Reporting a bug
 
@@ -249,3 +282,4 @@ See [CHANGELOG.md](CHANGELOG.md).
 - Built on [Next.js](https://nextjs.org/) and [React](https://react.dev/).
 - Styling via [Tailwind CSS v4](https://tailwindcss.com/).
 - Class merging via [`clsx`](https://github.com/lukeed/clsx) and [`tailwind-merge`](https://github.com/dcastil/tailwind-merge).
+- Preset coverage modelled on the [tsParticles presets](https://github.com/tsparticles/presets) catalogue.

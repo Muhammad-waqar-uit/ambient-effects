@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "10 Ambient Effects — ambient-effects",
+  title: "36 Ambient Effects — ambient-effects",
   description:
-    "A single verbatim replica page: fireflies, snow, bubbles, confetti, constellation, stardust, embers, leaves, rain and flow. Move, click and scroll.",
+    "Interactive ambient canvas effects: fireflies, snow, bubbles, confetti, ambient, big circles, fireworks, fountain, matrix, sea anemone, aurora, nebula, starfall and more. Move, click and scroll.",
 };
 
 export default function RootLayout({

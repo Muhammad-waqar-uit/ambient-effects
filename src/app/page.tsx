@@ -46,7 +46,7 @@ export default function Home() {
       </div>
 
       <footer className="replica-footer">
-        <span>ambient-effects v0.2.0</span>
+        <span>ambient-effects v0.4.0</span>
         <span className="replica-footer-sep">·</span>
         <a href="/about/">Docs &amp; install</a>
         <span className="replica-footer-sep">·</span>

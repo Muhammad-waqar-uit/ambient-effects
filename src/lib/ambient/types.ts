@@ -14,16 +14,27 @@ export type EffectId =
   | "wind"
   | "sunlight"
   | "stars"
+  | "ambient"
+  | "big-circles"
+  | "confetti-cannon"
   | "confetti-explosions"
+  | "confetti-falling"
+  | "confetti-parade"
+  | "fire"
+  | "fireworks"
+  | "fountain"
   | "hyperspace"
   | "links"
   | "matrix"
-  | "confetti-parade"
-  | "aurora-2"
-  | "twinkle-2"
-  | "drift-2"
-  | "prism-2"
-  | "spark-2";
+  | "sea-anemone"
+  | "squares"
+  | "triangles"
+  | "aurora"
+  | "nebula"
+  | "petals"
+  | "glitch"
+  | "ripple"
+  | "starfall";
 
 export interface Burst {
   x: number;
