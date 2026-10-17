@@ -350,7 +350,7 @@ npm run dev
 src/
 ├── index.ts                    # public barrel: component, effects, types
 ├── lib/
-│   ├── utils.ts                # cn() helper
+│   ├── utils.ts                # cn() helper (demo UI only, not shipped in the lib graph)
 │   └── ambient/
 │       ├── types.ts            # EffectId, EffectGroup, EffectProps, ...
 │       ├── ambient-surface.tsx # "use client" canvas + interaction layer
