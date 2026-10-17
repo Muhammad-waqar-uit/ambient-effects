@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "36 Ambient Effects — ambient-effects",
+  title: "45 Ambient Effects — ambient-effects",
   description:
-    "Interactive ambient canvas effects: fireflies, snow, bubbles, confetti, ambient, big circles, fireworks, fountain, matrix, sea anemone, aurora, nebula, starfall and more. Move, click and scroll.",
+    "45 interactive ambient canvas effects for Next.js and React: fireflies, snow, confetti, fireworks, aurora, starfall, hacker, space rocks, Saturn ring, emoji and more. Move, click and scroll.",
 };
 
 export default function RootLayout({

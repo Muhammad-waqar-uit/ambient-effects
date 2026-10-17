@@ -55,11 +55,18 @@ html {
 
 body {
   margin: 0;
-  height: max(100vh, 270vh);
+  min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
   font-family: "Jost", "Futura", "Avenir Next", system-ui, sans-serif;
   transition: background 0.4s;
+}
+
+/* The demo is a single fullscreen canvas with a fixed sidebar: no page scroll.
+   :has() keeps /about (a normal scrolling document) untouched. */
+body:has(.effects-panel) {
+  height: 100vh;
+  overflow: hidden;
 }
 
 canvas {
@@ -79,58 +86,284 @@ canvas {
   opacity: 0.65;
 }
 
-.dock {
+/* ---------- effects sidebar ---------- */
+
+.panel-toggle {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  max-width: min(96vw, 980px);
-  display: flex;
-  gap: 6px;
-  padding: 6px;
-  border-radius: 18px;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: 14px;
+  z-index: 21;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--chip);
+  border-radius: 999px;
   background: var(--chip);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--ink);
+  font: 500 13px/1 inherit;
+  cursor: pointer;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
-.dock::-webkit-scrollbar {
-  display: none;
-}
-
-.dock button {
-  flex: none;
-  border: 0;
-  border-radius: 12px;
-  padding: 9px 14px;
-  font: 500 13px/1 inherit;
-  color: var(--ink);
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-.dock button:hover {
+.panel-toggle:hover {
   background: var(--chip);
+  filter: brightness(1.15);
 }
 
-.dock button[aria-pressed="true"] {
-  background: var(--on);
-  color: var(--onink);
-}
-
-.dock button:focus-visible {
+.panel-toggle:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-.dock .sep {
-  flex: none;
-  width: 1px;
+.panel-toggle-count {
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+.effects-panel {
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  left: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 20;
+  width: 270px;
+  max-width: calc(100vw - 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--chip);
+  border-radius: 18px;
   background: var(--chip);
-  margin: 4px 2px;
+  background: color-mix(in srgb, var(--bg) 64%, transparent);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  contain: layout paint;
+  overflow: hidden;
+  transform: translateX(calc(-100% - 24px));
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.effects-panel.is-open {
+  transform: none;
+}
+
+.effects-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.effects-panel-kicker {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+.effects-panel-title {
+  margin: 3px 0 0;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.theme-toggle {
+  flex: none;
+  padding: 6px 10px;
+  border: 1px solid var(--chip);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: 500 11px/1 inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.theme-toggle:hover {
+  background: var(--on);
+  color: var(--onink);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.effects-search {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--chip);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  font: 400 13px/1.4 inherit;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.effects-search::placeholder {
+  color: var(--ink);
+  opacity: 0.4;
+}
+
+.effects-search:focus-visible {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
+.effects-search::-webkit-search-cancel-button {
+  opacity: 0.5;
+}
+
+.effects-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--chip) transparent;
+}
+
+.effects-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.effects-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--chip);
+}
+
+.effects-group {
+  margin-bottom: 14px;
+}
+
+.effects-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 6px;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.45;
+}
+
+.effects-group-title span {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.effect-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink);
+  font: 400 13px/1.2 inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+
+.effect-item:hover {
+  background: var(--chip);
+}
+
+.effect-item[aria-pressed="true"] {
+  background: var(--on);
+  color: var(--onink);
+}
+
+.effect-item:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.effect-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+.effects-empty {
+  margin: 12px 6px;
+  font-size: 13px;
+  opacity: 0.55;
+}
+
+.effects-panel-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.45;
+}
+
+.effects-panel-foot a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (min-width: 900px) {
+  .effects-panel {
+    transform: none;
+  }
+
+  .panel-toggle {
+    display: none;
+  }
+
+  #name {
+    top: calc(18px + env(safe-area-inset-top, 0px));
+    left: calc(14px + 270px + 22px);
+  }
+
+}
+
+@media (max-width: 899px) {
+  /* The drawer carries the effect name, and the toggle needs the space above it. */
+  #name {
+    display: none;
+  }
+
+  .effects-panel {
+    /* Leave the toggle above and the hint/footer pills below the drawer. */
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .effects-panel,
+  .effect-item,
+  .theme-toggle,
+  .effects-search {
+    transition: none;
+  }
 }
 
 #hint {
@@ -138,11 +371,18 @@ canvas {
   left: 0;
   right: 0;
   bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+  width: fit-content;
+  margin: 0 auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
   text-align: center;
   font-size: 12px;
   letter-spacing: 0.2em;
-  opacity: 0.45;
+  opacity: 0.55;
   pointer-events: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   transition: opacity 0.6s;
 }
 
@@ -151,13 +391,20 @@ canvas {
   left: 0;
   right: 0;
   bottom: calc(78px + env(safe-area-inset-bottom, 0px) + 22px);
+  width: fit-content;
+  margin: 0 auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
   font-size: 12px;
   letter-spacing: 0.02em;
-  opacity: 0.55;
+  opacity: 0.62;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   pointer-events: auto;
 }
 
@@ -177,4 +424,15 @@ canvas {
 ::selection {
   background-color: var(--on);
   color: var(--onink);
+}
+
+/* Keep the footer and hint centred in the space right of the fixed sidebar. */
+@media (min-width: 900px) {
+  #hint {
+    left: 298px;
+  }
+
+  .replica-footer {
+    left: 298px;
+  }
 }

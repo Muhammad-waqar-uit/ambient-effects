@@ -1,0 +1,56 @@
+name: Feature or effect request
+description: Suggest a new effect, prop, or behaviour.
+title: "[Feature]: "
+labels: ["enhancement", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        New effects are the most common contribution. A reference video or image makes the request far easier to build.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What are you asking for?
+      options:
+        - New effect
+        - Change to an existing effect
+        - New prop or API
+        - Documentation
+        - Performance
+        - Developer experience
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What should it look and feel like? What interaction should it have with the pointer and clicks?
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Links, videos, or screenshots of a similar effect.
+      placeholder: https://tsparticles.github.io/ — the "Confetti Parade" preset
+      render: text
+
+  - type: input
+    id: group
+    attributes:
+      label: Suggested group
+      description: Presets, Classic, Cosmic, Digital, or Playful.
+      placeholder: Cosmic
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this isn't a duplicate.
+          required: true
+        - label: This is a request for the library, not a support question about my own app.
+          required: true

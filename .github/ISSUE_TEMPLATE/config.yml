@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://ambient-effects.vercel.app/about
+    about: Install, props, and the effect catalogue.
+  - name: Live demo
+    url: https://ambient-effects.vercel.app
+    about: Try all 45 effects with a searchable sidebar.
+  - name: Security issue
+    url: https://github.com/Muhammad-waqar-uit/ambient-effects/security/advisories/new
+    about: Report privately. Please do not open a public issue.

@@ -1,8 +1,26 @@
 export type EffectId =
-  | "fireflies"
-  | "snow"
+  // Presets — parity with the tsParticles preset catalogue
+  | "ambient"
+  | "big-circles"
   | "bubbles"
   | "confetti"
+  | "confetti-cannon"
+  | "confetti-explosions"
+  | "confetti-falling"
+  | "confetti-parade"
+  | "fire"
+  | "fireflies"
+  | "fireworks"
+  | "fountain"
+  | "hyperspace"
+  | "links"
+  | "matrix"
+  | "sea-anemone"
+  | "snow"
+  | "squares"
+  | "stars"
+  | "triangles"
+  // Classic — the original hand-written set
   | "constellation"
   | "stardust"
   | "embers"
@@ -13,28 +31,27 @@ export type EffectId =
   | "neon"
   | "wind"
   | "sunlight"
-  | "stars"
-  | "ambient"
-  | "big-circles"
-  | "confetti-cannon"
-  | "confetti-explosions"
-  | "confetti-falling"
-  | "confetti-parade"
-  | "fire"
-  | "fireworks"
-  | "fountain"
-  | "hyperspace"
-  | "links"
-  | "matrix"
-  | "sea-anemone"
-  | "squares"
-  | "triangles"
+  // Cosmic — skies, stars and planets
   | "aurora"
   | "nebula"
-  | "petals"
+  | "starfall"
+  | "star-drops"
+  | "night-sky"
+  | "space-rocks"
+  | "saturn-ring"
+  | "cosmic-planets"
+  // Digital — screens, signals and sound
   | "glitch"
+  | "hacker"
+  | "music-bars"
+  | "radio-glitch"
+  // Playful — petals, water and pictures
+  | "petals"
   | "ripple"
-  | "starfall";
+  | "emoji";
+
+/** Sidebar / selector grouping for the built-in effects. */
+export type EffectGroup = "Presets" | "Classic" | "Cosmic" | "Digital" | "Playful";
 
 export interface Burst {
   x: number;
@@ -81,6 +98,8 @@ export interface EffectDefinition {
   draw: EffectFn;
   /** Base hue used for click bursts. */
   hue: number;
+  /** Optional grouping used by the selector and demo sidebar. Defaults to "Presets". */
+  group?: EffectGroup;
   /** When true, the canvas is tint-filled (not cleared) each frame — for trail effects. */
   tint?: boolean;
   /** Effect-specific pointerdown behavior (e.g. pop bubbles, splash rain). */

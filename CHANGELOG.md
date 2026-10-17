@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-10-18
+
+### Added
+
+- **9 new effects (45 total):**
+  - `hacker` — falling green katakana and hex columns, glowing heads, scanlines.
+  - `music-bars` — equalizer bars with mirrored reflections and peak caps; click to pulse the beat.
+  - `radio-glitch` — oscilloscope waveform with static bursts and frequency jumps; click to retune.
+  - `star-drops` — the purple droplets from `starfall` on their own: fall, streak, splash, ripple.
+  - `night-sky` — the moving background sky on its own: parallax stars that drift and twinkle.
+  - `space-rocks` — asteroids tumbling in from depth with craters, dust trails and parallax.
+  - `saturn-ring` — a ringed planet rotating with ring particles orbiting in perspective.
+  - `cosmic-planets` — planets on elliptical orbits with moons and a central star.
+  - `emoji` — floating emoji confetti that spins, drifts and reacts to the pointer; click to spawn more.
+- `EffectGroup` (`Presets | Classic | Cosmic | Digital | Playful`) exported, and every `EffectDefinition` now carries a `group`, so custom pickers can be sectioned without hardcoding ids.
+- `docs/banner.svg` and a badge row for the README.
+- `SECURITY.md`, `CODE_OF_CONDUCT.md`, bug/feature issue forms, and a pull-request template.
+
+### Changed
+
+- `starfall` is now composed of the two standalone effects `star-drops` and `night-sky`; it keeps both layers, so existing usage is unchanged.
+- Demo rewritten around a searchable, grouped sidebar with a live effect name, theme toggle and mobile drawer, replacing the horizontally scrolling dock.
+- README restructured: banner, badges, grouped effect tables, quick start, controlled and grouped-selector examples, interactions, API, accessibility and performance notes.
+- `/about` documents all 45 effects by group.
+
+### Fixed
+
+- `package.json` `homepage` now points at the live demo and `bugs` at the real repository (it previously pointed at a non-existent org).
+- `react` moved from `dependencies` to `peerDependencies`, and `next` / `react-dom` moved to `devDependencies`, so installing the package no longer pulls a second React or an entire Next.js install.
+- `files` now ships `docs/banner.svg`, `SECURITY.md` and `CODE_OF_CONDUCT.md`; added `engines` and `sideEffects: false`; expanded npm keywords.
+
 ## [0.4.0] - 2026-10-17
 
 ### Added

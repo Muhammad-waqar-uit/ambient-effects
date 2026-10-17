@@ -314,10 +314,16 @@ export function AmbientSurface({
           onChange={handleEffectSelect}
           aria-label="Select ambient effect"
         >
-          {effects.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.name}
-            </option>
+          {Array.from(new Set(effects.map((e) => e.group ?? "Presets"))).map((group) => (
+            <optgroup key={group} label={group}>
+              {effects
+                .filter((e) => (e.group ?? "Presets") === group)
+                .map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name}
+                  </option>
+                ))}
+            </optgroup>
           ))}
         </select>
       )}

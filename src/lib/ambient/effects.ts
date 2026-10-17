@@ -3170,52 +3170,1121 @@ function drawStarfall(props: EffectProps): void {
   ctx.fillRect(0, height - 40, width, 40);
   ctx.globalCompositeOperation = "source-over";
 }
+
+/* Cached radial-glow sprite: drawing a pre-rendered canvas is far cheaper than
+   allocating a radial gradient for every glowing particle, every frame. */
+const glowSprites = new Map<string, HTMLCanvasElement>();
+
+function glowSprite(hue: number, sat: number, light: number): HTMLCanvasElement {
+  const key = `${hue}|${sat}|${light}`;
+  const cached = glowSprites.get(key);
+  if (cached) return cached;
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const g = canvas.getContext("2d");
+  if (g) {
+    const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    grad.addColorStop(0, hsl(hue, sat, light, 0.9));
+    grad.addColorStop(0.35, hsl(hue, sat, light, 0.28));
+    grad.addColorStop(1, hsl(hue, sat, light, 0));
+    g.fillStyle = grad;
+    g.fillRect(0, 0, size, size);
+  }
+  glowSprites.set(key, canvas);
+  return canvas;
+}
+
+/* ---------- 37. Hacker (binary rain, CRT scanlines, intrusion alerts) ---------- */
+
+interface HackColumn {
+  x: number;
+  y: number;
+  speed: number;
+  glyphs: string[];
+  amber: boolean;
+}
+
+interface HackerState {
+  cols: HackColumn[];
+  alert: number;
+}
+
+const HACKER_KANA = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲンｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉﾊﾋﾌﾍﾎﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾜｦﾝ";
+const HACKER_HEX = "0123456789ABCDEF";
+
+function hackerGlyph(): string {
+  const r = R();
+  if (r < 0.42) return HACKER_KANA.charAt(Math.floor(R() * HACKER_KANA.length));
+  if (r < 0.78) return HACKER_HEX.charAt(Math.floor(R() * HACKER_HEX.length));
+  return R() < 0.5 ? "0" : "1";
+}
+
+function hackerState(): HackerState {
+  return stateFor<HackerState>("hacker", () => ({ cols: [], alert: 0 }));
+}
+
+function initHacker(props?: Partial<EffectProps>): void {
+  const W = props?.width ?? WIDTH;
+  const H = props?.height ?? HEIGHT;
+  const s = hackerState();
+  s.cols = [];
+  s.alert = 0;
+  const cols = Math.max(14, Math.floor((W || 1200) / 19));
+  for (let i = 0; i < cols; i++) {
+    const len = 10 + Math.floor(R() * 16);
+    s.cols.push({
+      x: (i + 0.5) * ((W || 1200) / cols),
+      y: R() * H,
+      speed: 3 + R() * 6,
+      amber: R() < 0.12,
+      glyphs: mk(len, () => hackerGlyph()),
+    });
+  }
+}
+
+function drawHacker(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const s = hackerState();
+  if (s.cols.length === 0) initHacker(props);
+  const glyphH = 15;
+  const flicker = reducedMotion ? 1 : 0.9 + 0.1 * Math.sin(time * 37);
+  ctx.font = "13px ui-monospace, SFMono-Regular, Menlo, monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  if (s.alert <= 0 && R() < 0.0022) s.alert = 26;
+  const alerting = s.alert > 0;
+  if (alerting) s.alert -= 1;
+
+  for (const c of s.cols) {
+    c.y += c.speed * (reducedMotion ? 0.4 : 1);
+    if (c.y - c.glyphs.length * glyphH > height) {
+      c.y = -R() * 160;
+      c.x = R() * width;
+      c.speed = 3 + R() * 6;
+      c.amber = R() < 0.12;
+      c.glyphs = mk(c.glyphs.length, () => hackerGlyph());
+    }
+    if (R() < 0.14) c.glyphs[Math.floor(R() * c.glyphs.length)] = hackerGlyph();
+    for (let i = 0; i < c.glyphs.length; i++) {
+      const gy = c.y - i * glyphH;
+      if (gy < -glyphH || gy > height + glyphH) continue;
+      const near = mx > 0 && Math.abs(c.x - mx) < 30 && Math.abs(gy - my) < 44;
+      const t = i / c.glyphs.length;
+      // Trailing glyphs drop off faster than linearly so the head reads as motion.
+      const alpha = (1 - t) * (1 - t * 0.45) * (near ? 1 : 0.85) * flicker;
+      const hue = near || alerting ? 0 : c.amber ? 38 : 132;
+      if (i < 2) {
+        // Cached phosphor bloom sprite — no gradient or shadow allocated per frame.
+        const sprite = glowSprite(hue, 95, dark ? 70 : 45);
+        const size = (i === 0 ? 34 : 22) * flicker;
+        ctx.globalCompositeOperation = "lighter";
+        ctx.drawImage(sprite, c.x - size / 2, gy - size / 2, size, size);
+        ctx.globalCompositeOperation = "source-over";
+      }
+      ctx.fillStyle = near
+        ? hsl(0, 95, 70, 1)
+        : i === 0
+          ? hsl(hue, 100, dark ? 94 : 32, 0.98)
+          : hsl(hue, 90, dark ? 62 : 30, Math.max(0, alpha));
+      ctx.fillText(c.glyphs[i] ?? "0", c.x, gy);
+    }
+  }
+
+  // CRT scanlines.
+  ctx.fillStyle = dark ? "rgba(0, 0, 0, 0.16)" : "rgba(20, 30, 24, 0.05)";
+  for (let y = 0; y < height; y += 3) ctx.fillRect(0, y, width, 1);
+
+  // Phosphor bloom along the bottom.
+  const bloom = ctx.createLinearGradient(0, height - 90, 0, height);
+  bloom.addColorStop(0, hsl(135, 90, 55, 0));
+  bloom.addColorStop(1, hsl(135, 90, 55, dark ? 0.12 : 0.06));
+  ctx.fillStyle = bloom;
+  ctx.fillRect(0, height - 90, width, 90);
+
+  // Intrusion alert.
+  if (alerting) {
+    const a = s.alert / 26;
+    ctx.fillStyle = hsl(0, 90, 55, 0.09 * a);
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = hsl(0, 92, 62, 0.55 * a);
+    ctx.lineWidth = 2;
+    ctx.strokeRect(6, 6, width - 12, height - 12);
+    ctx.font = "600 12px ui-monospace, monospace";
+    ctx.textAlign = "right";
+    ctx.fillStyle = hsl(0, 95, 70, 0.9 * a);
+    ctx.fillText("!! INTRUSION DETECTED", width - 18, 30);
+  }
+}
+
+/* ---------- 38. Music Bars (equalizer with peaks and beats) ---------- */
+
+interface MusicBar {
+  h: number;
+  peak: number;
+}
+
+interface MusicState {
+  bars: MusicBar[];
+  beat: number;
+}
+
+function musicState(): MusicState {
+  return stateFor<MusicState>("music-bars", () => ({ bars: [], beat: 0 }));
+}
+
+function initMusicBars(props?: Partial<EffectProps>): void {
+  const W = props?.width ?? WIDTH;
+  const s = musicState();
+  const n = Math.max(24, Math.min(72, Math.floor((W || 1200) / 15)));
+  s.bars = mk(n, () => ({ h: 0.08, peak: 0.08 }));
+  s.beat = 0;
+}
+
+function clickMusicBars(): void {
+  musicState().beat = 1.35;
+}
+
+function drawMusicBars(props: EffectProps): void {
+  const { ctx, width, height, time, dark, reducedMotion } = props;
+  const s = musicState();
+  if (s.bars.length === 0) initMusicBars(props);
+  s.beat = Math.max(0, s.beat - (reducedMotion ? 0.014 : 0.022));
+  if (s.beat <= 0 && R() < 0.014) s.beat = 1;
+  const env = 0.35 + 0.65 * s.beat;
+  const n = s.bars.length;
+  const gap = 3;
+  const bw = Math.max(3, (width - gap * (n + 1)) / n);
+  const base = height - 34;
+  ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
+
+  for (let i = 0; i < n; i++) {
+    const b = s.bars[i]!;
+    const bass = 0.5 + 0.5 * Math.sin(time * 3.1 + i * 0.32);
+    const mid = 0.5 + 0.5 * Math.sin(time * 5.9 + i * 0.83 + 1.7);
+    const hiss = 0.5 + 0.5 * Math.sin(time * 11 + i * 1.9);
+    const target = Math.min(1, (0.1 + 0.55 * bass * mid + 0.2 * hiss) * env);
+    b.h += (target - b.h) * 0.18;
+    b.peak = Math.max(b.peak - 0.008, b.h);
+    const x = gap + i * (bw + gap);
+    const bh = Math.max(4, b.h * height * 0.62);
+    const y = base - bh;
+    const hue = 196 + (i / n) * 124;
+    const g = ctx.createLinearGradient(0, base, 0, y);
+    g.addColorStop(0, hsl(hue, 95, 58, 0.85));
+    g.addColorStop(0.6, hsl(hue + 24, 95, 64, 0.9));
+    g.addColorStop(1, hsl(hue + 52, 95, 72, 0.95));
+    ctx.fillStyle = g;
+    ctx.fillRect(x, y, bw, bh);
+    ctx.fillStyle = hsl(hue + 60, 100, 86, 0.9);
+    ctx.fillRect(x, y, bw, 2);
+    const py = base - b.peak * height * 0.62;
+    ctx.fillStyle = hsl(hue + 40, 100, 90, 0.5);
+    ctx.fillRect(x, py, bw, 1.5);
+  }
+
+  ctx.fillStyle = hsl(210, 60, dark ? 65 : 40, 0.22);
+  ctx.fillRect(0, base, width, 1);
+  ctx.fillStyle = hsl(280, 70, dark ? 55 : 45, 0.18);
+  ctx.fillRect(0, base + 6, width, 1);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/* ---------- 39. Radio Glitch (tuner spectrum with static and channel hops) ---------- */
+
+interface RadioState {
+  channel: number;
+  next: number;
+  glitch: number;
+}
+
+const RADIO_HUES = [186, 42, 300, 140];
+
+function radioState(): RadioState {
+  return stateFor<RadioState>("radio-glitch", () => ({ channel: 0, next: 260, glitch: 0 }));
+}
+
+function initRadio(): void {
+  const s = radioState();
+  s.channel = 0;
+  s.next = 260;
+  s.glitch = 0;
+}
+
+function hopChannel(s: RadioState): void {
+  s.channel = (s.channel + 1) % RADIO_HUES.length;
+  s.glitch = 18;
+  s.next = 280 + R() * 560;
+}
+
+function clickRadio(): void {
+  hopChannel(radioState());
+}
+
+function drawRadio(props: EffectProps): void {
+  const { ctx, width, height, time, dark, reducedMotion } = props;
+  const s = radioState();
+  s.next -= reducedMotion ? 0.4 : 1;
+  if (s.next <= 0) hopChannel(s);
+  if (s.glitch > 0) s.glitch -= 1;
+  const glitching = s.glitch > 0;
+  const hue = RADIO_HUES[s.channel] ?? 186;
+  const midY = height * 0.54;
+  ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
+
+  // Spectrum, mirrored around the baseline.
+  const n = Math.max(28, Math.min(64, Math.floor(width / 22)));
+  for (let i = 0; i < n; i++) {
+    const x = (i + 0.5) * (width / n);
+    const amp =
+      (0.1 + 0.9 * Math.abs(signalAt(i * 22, time * (1 + s.channel * 0.25), s.channel * 3.7))) *
+      height *
+      0.16;
+    const jitter = glitching && R() < 0.35 ? (R() - 0.5) * 34 : 0;
+    ctx.fillStyle = hsl(hue, 90, dark ? 62 : 42, 0.5);
+    ctx.fillRect(x - 3 + jitter, midY - amp, 6, amp);
+    ctx.fillStyle = hsl(hue + 32, 95, dark ? 70 : 44, 0.34);
+    ctx.fillRect(x - 3 + jitter, midY, 6, amp * 0.55);
+  }
+
+  // Waveform trace.
+  ctx.strokeStyle = hsl(hue + 10, 100, dark ? 88 : 38, 0.95);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let x = 0; x <= width; x += 6) {
+    const y = midY + signalAt(x, time * 2.2 + s.channel * 5, s.channel * 11.3) * height * 0.1;
+    if (x === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Tuner readout.
+  const freq = 88 + s.channel * 7.3;
+  const label = `FM ${freq.toFixed(1)}`;
+  ctx.font = "600 20px ui-monospace, SFMono-Regular, Menlo, monospace";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  if (glitching) {
+    const split = 2 + R() * 3;
+    ctx.fillStyle = "rgba(0, 255, 240, 0.75)";
+    ctx.fillText(glitching ? "NO SIGNAL" : label, width / 2 + split, height * 0.22);
+    ctx.fillStyle = "rgba(255, 0, 200, 0.7)";
+    ctx.fillText("NO SIGNAL", width / 2 - split, height * 0.22);
+    ctx.fillStyle = dark ? "rgba(240, 250, 255, 0.95)" : "rgba(20, 30, 50, 0.9)";
+    ctx.fillText("NO SIGNAL", width / 2, height * 0.22);
+  } else {
+    ctx.fillStyle = hsl(hue, 85, dark ? 86 : 36, 0.9);
+    ctx.fillText(label, width / 2, height * 0.22);
+  }
+
+  ctx.font = "500 12px ui-monospace, SFMono-Regular, Menlo, monospace";
+  ctx.textAlign = "right";
+  ctx.fillStyle = hsl(hue, 75, dark ? 70 : 40, 0.85);
+  ctx.fillText(`${glitching ? "STEREO LOST" : "STEREO"}  ·  ${s.channel + 1}/4`, width - 18, height * 0.12);
+
+  // Static bursts.
+  if (glitching) {
+    for (let i = 0; i < 80; i++) {
+      const y = R() * height;
+      ctx.fillStyle = R() < 0.5 ? "rgba(255, 255, 255, 0.16)" : hsl(hue, 90, 70, 0.18);
+      ctx.fillRect(R() * width, y, R() * 40 + 4, 1);
+    }
+  }
+
+  // Tuner scale with a sweeping needle.
+  const scaleY = height * 0.88;
+  ctx.fillStyle = hsl(hue, 60, dark ? 55 : 40, 0.35);
+  ctx.fillRect(width * 0.1, scaleY, width * 0.8, 1);
+  for (let i = 0; i <= 20; i++) {
+    const x = width * 0.1 + (i / 20) * width * 0.8;
+    const h = i % 5 === 0 ? 8 : 4;
+    ctx.fillRect(x, scaleY - h, 1, h);
+  }
+  const needle = width * 0.1 + ((time * 26 + s.channel * 90) % (width * 0.8));
+  ctx.fillStyle = hsl(hue + 20, 95, dark ? 78 : 40, 0.9);
+  ctx.fillRect(needle, scaleY - 14, 2, 16);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/* ---------- 40. Star Drops (purple stars that splash into water rings) ---------- */
+
+interface StarDrop {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  len: number;
+  hue: number;
+  floor: number;
+}
+
+interface DropBit {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  hue: number;
+}
+
+interface DropRing {
+  x: number;
+  y: number;
+  r: number;
+  max: number;
+  life: number;
+  hue: number;
+}
+
+interface StarDropsState {
+  drops: StarDrop[];
+  bits: DropBit[];
+  rings: DropRing[];
+  next: number;
+}
+
+function starDropsState(): StarDropsState {
+  return stateFor<StarDropsState>("star-drops", () => ({ drops: [], bits: [], rings: [], next: 10 }));
+}
+
+function initStarDrops(): void {
+  const s = starDropsState();
+  s.drops = [];
+  s.bits = [];
+  s.rings = [];
+  s.next = 10;
+}
+
+function spawnDrop(s: StarDropsState, x: number, floor: number): void {
+  s.drops.push({
+    x,
+    y: -40 - R() * 140,
+    vx: (R() - 0.5) * 0.5,
+    vy: 5 + R() * 4.2,
+    len: 70 + R() * 150,
+    hue: 262 + R() * 26,
+    floor,
+  });
+}
+
+function dropSplash(s: StarDropsState, x: number, y: number, hue: number): void {
+  s.rings.push({ x, y, r: 1, max: 50 + R() * 60, life: 1, hue });
+  s.rings.push({ x, y, r: 1, max: 26 + R() * 28, life: 1, hue: hue + 14 });
+  const n = 8 + Math.floor(R() * 8);
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (R() - 0.5) * 2.6;
+    const speed = 0.8 + R() * 3.2;
+    s.bits.push({
+      x,
+      y,
+      vx: Math.cos(a) * speed,
+      vy: Math.sin(a) * speed,
+      life: 1,
+      hue: hue + R() * 18 - 9,
+    });
+  }
+}
+
+function clickStarDrops(props: EffectProps, x: number, y: number): void {
+  const s = starDropsState();
+  const floor = Math.max(80, y);
+  spawnDrop(s, x - 26, floor);
+  spawnDrop(s, x + 26, floor);
+  void props;
+}
+
+function drawStarDrops(props: EffectProps): void {
+  const { ctx, width, height, dark, reducedMotion } = props;
+  const s = starDropsState();
+  ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
+
+  s.next -= 1;
+  if (s.next <= 0 && s.drops.length < 16) {
+    spawnDrop(s, width * (0.08 + R() * 0.84), height * (0.82 + R() * 0.16));
+    if (R() < 0.35) spawnDrop(s, width * (0.08 + R() * 0.84), height * (0.82 + R() * 0.16));
+    s.next = 10 + R() * 22;
+  }
+
+  for (let i = s.drops.length - 1; i >= 0; i--) {
+    const f = s.drops[i]!;
+    f.x += f.vx;
+    f.y += f.vy * (reducedMotion ? 0.6 : 1);
+    const topY = f.y - f.len;
+    const g = ctx.createLinearGradient(f.x, topY, f.x, f.y);
+    g.addColorStop(0, hsl(f.hue, 85, 62, 0));
+    g.addColorStop(0.55, hsl(f.hue, 85, 64, 0.42));
+    g.addColorStop(1, hsl(f.hue + 12, 95, 84, 0.95));
+    ctx.strokeStyle = g;
+    ctx.lineWidth = 1.9;
+    ctx.beginPath();
+    ctx.moveTo(f.x, topY);
+    ctx.lineTo(f.x, f.y);
+    ctx.stroke();
+    const head = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 10);
+    head.addColorStop(0, hsl(f.hue + 15, 100, 90, 0.95));
+    head.addColorStop(0.4, hsl(f.hue, 100, 74, 0.5));
+    head.addColorStop(1, hsl(f.hue, 100, 64, 0));
+    ctx.fillStyle = head;
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, 10, 0, TAU);
+    ctx.fill();
+    if (f.y >= f.floor) {
+      dropSplash(s, f.x, f.floor, f.hue);
+      s.drops.splice(i, 1);
+    }
+  }
+
+  for (let i = s.bits.length - 1; i >= 0; i--) {
+    const b = s.bits[i]!;
+    b.vy += 0.17;
+    b.x += b.vx;
+    b.y += b.vy;
+    b.life -= 0.026;
+    if (b.life <= 0) {
+      s.bits.splice(i, 1);
+      continue;
+    }
+    ctx.fillStyle = hsl(b.hue, 95, 78, b.life);
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 1.4 * b.life + 0.5, 0, TAU);
+    ctx.fill();
+  }
+
+  for (let i = s.rings.length - 1; i >= 0; i--) {
+    const r = s.rings[i]!;
+    r.r += 2.1;
+    r.life -= 0.018;
+    if (r.life <= 0 || r.r > r.max) {
+      s.rings.splice(i, 1);
+      continue;
+    }
+    ctx.strokeStyle = hsl(r.hue, 95, 80, r.life * 0.7);
+    ctx.lineWidth = 1 + r.life * 1.5;
+    ctx.beginPath();
+    ctx.ellipse(r.x, r.y, r.r, r.r * 0.34, 0, 0, TAU);
+    ctx.stroke();
+  }
+
+  const floorGlow = ctx.createLinearGradient(0, height - 46, 0, height);
+  floorGlow.addColorStop(0, hsl(272, 80, 60, 0));
+  floorGlow.addColorStop(1, hsl(272, 80, 60, dark ? 0.1 : 0.06));
+  ctx.fillStyle = floorGlow;
+  ctx.fillRect(0, height - 46, width, 46);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/* ---------- 41. Night Sky (dense drifting starfield) ---------- */
+
+interface NightStar {
+  x: number;
+  y: number;
+  z: number;
+  ph: number;
+  ts: number;
+  hue: number;
+}
+
+function initNightSky(props?: Partial<EffectProps>): void {
+  const W = props?.width ?? WIDTH;
+  const H = props?.height ?? HEIGHT;
+  const A = storeFor<NightStar>("night-sky");
+  A.length = 0;
+  A.push(
+    ...mk(cnt(330), () => ({
+      x: R() * W,
+      y: R() * H,
+      z: 0.2 + R() * 0.8,
+      ph: R() * TAU,
+      ts: 0.35 + R() * 1.9,
+      hue: 200 + R() * 60,
+    })),
+  );
+}
+
+function drawNightSky(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, sp, dark, reducedMotion } = props;
+  const A = storeFor<NightStar>("night-sky");
+  if (A.length === 0) initNightSky(props);
+  const px = mx > 0 ? (mx - width / 2) * -0.014 : 0;
+  const py = my > 0 ? (my - height / 2) * -0.014 : 0;
+  ctx.globalCompositeOperation = dark ? "lighter" : "source-over";
+
+  // Faint galactic band for depth.
+  const band = ctx.createLinearGradient(0, height * 0.15, width, height * 0.7);
+  band.addColorStop(0, hsl(230, 70, 50, dark ? 0.05 : 0.03));
+  band.addColorStop(0.5, hsl(265, 70, 55, dark ? 0.07 : 0.04));
+  band.addColorStop(1, hsl(200, 70, 50, dark ? 0.03 : 0.02));
+  ctx.fillStyle = band;
+  ctx.fillRect(0, 0, width, height);
+
+  for (const s of A) {
+    s.x += s.z * 0.12 + props.wind * 0.1 * s.z;
+    s.y += s.z * 0.028 - sp * 0.3 * s.z;
+    if (s.x > width + 4) s.x = -4;
+    if (s.x < -4) s.x = width + 4;
+    if (s.y > height + 4) s.y = -4;
+    if (s.y < -4) s.y = height + 4;
+    const tw = 0.4 + 0.6 * Math.abs(Math.sin(time * s.ts * (reducedMotion ? 0.4 : 1) + s.ph));
+    const x = s.x + px * s.z;
+    const y = s.y + py * s.z;
+    if (s.z > 0.84) {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 8 * s.z);
+      g.addColorStop(0, hsl(s.hue, 40, 92, 0.5 * tw));
+      g.addColorStop(1, hsl(s.hue, 40, 92, 0));
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, 8 * s.z, 0, TAU);
+      ctx.fill();
+    }
+    ctx.fillStyle = hsl(s.hue, 30, dark ? 94 : 30, tw);
+    ctx.beginPath();
+    ctx.arc(x, y, 0.5 + s.z * 1.5, 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = "source-over";
+  void height;
+}
+
+/* ---------- 42. Space Rocks (drifting asteroids with craters) ---------- */
+
+interface Rock {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r: number;
+  rot: number;
+  vr: number;
+  shape: number[];
+  hue: number;
+  z: number;
+}
+
+function initSpaceRocks(props?: Partial<EffectProps>): void {
+  const W = props?.width ?? WIDTH;
+  const H = props?.height ?? HEIGHT;
+  const stars = storeFor<NightStar>("space-rocks::stars");
+  stars.length = 0;
+  stars.push(
+    ...mk(cnt(90), () => ({
+      x: R() * W,
+      y: R() * H,
+      z: 0.3 + R() * 0.7,
+      ph: R() * TAU,
+      ts: 0.3 + R() * 1.4,
+      hue: 205 + R() * 50,
+    })),
+  );
+  const A = storeFor<Rock>("space-rocks");
+  A.length = 0;
+  A.push(
+    ...mk(cnt(15), () => {
+      const z = 0.35 + R() * 0.9;
+      return {
+        x: R() * W,
+        y: R() * H,
+        vx: (R() - 0.5) * 0.9 * z,
+        vy: (R() - 0.35) * 0.6 * z,
+        r: 7 + R() * 30 * z,
+        rot: R() * TAU,
+        vr: (R() - 0.5) * 0.02,
+        shape: mk(10, () => 0.7 + R() * 0.45),
+        hue: 25 + R() * 20,
+        z,
+      };
+    }),
+  );
+}
+
+function drawSpaceRocks(props: EffectProps): void {
+  const { ctx, time, mx, my, mvx, mvy, dark, reducedMotion } = props;
+  const A = storeFor<Rock>("space-rocks");
+  if (A.length === 0) initSpaceRocks(props);
+  const stars = storeFor<NightStar>("space-rocks::stars");
+  for (const s of stars) {
+    const tw = 0.3 + 0.7 * Math.abs(Math.sin(time * s.ts + s.ph));
+    ctx.fillStyle = hsl(s.hue, 25, dark ? 92 : 32, tw * 0.9);
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 0.4 + s.z, 0, TAU);
+    ctx.fill();
+  }
+  for (const r of A) {
+    r.x += r.vx;
+    r.y += r.vy;
+    r.rot += r.vr * (reducedMotion ? 0.3 : 1);
+    rep(r, 150, 0.03, mx, my, mvx, mvy);
+    wrap(r, r.r * 2);
+    ctx.save();
+    ctx.translate(r.x, r.y);
+    ctx.rotate(r.rot);
+    ctx.beginPath();
+    for (let i = 0; i < r.shape.length; i++) {
+      const a = (i / r.shape.length) * TAU;
+      const rad = r.r * (r.shape[i] ?? 1);
+      const x = Math.cos(a) * rad;
+      const y = Math.sin(a) * rad;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    const g = ctx.createRadialGradient(-r.r * 0.35, -r.r * 0.4, r.r * 0.1, 0, 0, r.r * 1.15);
+    g.addColorStop(0, hsl(r.hue, 18, dark ? 46 : 62, 0.98));
+    g.addColorStop(0.65, hsl(r.hue, 14, dark ? 30 : 54, 0.98));
+    g.addColorStop(1, hsl(r.hue, 16, dark ? 16 : 44, 0.98));
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = hsl(r.hue, 30, dark ? 62 : 72, 0.35);
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Craters.
+    ctx.fillStyle = hsl(r.hue, 10, dark ? 14 : 46, 0.5);
+    for (let c = 0; c < 3; c++) {
+      const ca = (c * 2.1 + 0.7) * 1.7;
+      const cd = r.r * (0.25 + c * 0.18);
+      ctx.beginPath();
+      ctx.ellipse(Math.cos(ca) * cd, Math.sin(ca) * cd, r.r * 0.16, r.r * 0.11, ca, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+/* ---------- 43. Saturn Ring (ringed planet with moons) ---------- */
+
+interface SaturnMoon {
+  a: number;
+  dist: number;
+  speed: number;
+  r: number;
+  hue: number;
+}
+
+function initSaturnRing(props?: Partial<EffectProps>): void {
+  const W = props?.width ?? WIDTH;
+  const H = props?.height ?? HEIGHT;
+  const moons = storeFor<SaturnMoon>("saturn-ring::moons");
+  moons.length = 0;
+  moons.push(
+    ...mk(3, (i) => ({
+      a: R() * TAU,
+      dist: 1.75 + i * 0.42 + R() * 0.1,
+      speed: 0.004 + R() * 0.006,
+      r: 3 + R() * 3,
+      hue: 40 + R() * 30,
+    })),
+  );
+  const stars = storeFor<NightStar>("saturn-ring::stars");
+  stars.length = 0;
+  const base = Math.min(W || 1200, H || 800);
+  stars.push(
+    ...mk(130, () => ({
+      x: R() * W,
+      y: R() * H,
+      z: 0.3 + R() * 0.7,
+      ph: R() * TAU,
+      ts: 0.3 + R() * 1.2,
+      hue: 205 + R() * 50,
+    })),
+  );
+  void base;
+}
+
+function drawSaturnRing(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const moons = storeFor<SaturnMoon>("saturn-ring::moons");
+  if (moons.length === 0) initSaturnRing(props);
+  const stars = storeFor<NightStar>("saturn-ring::stars");
+  if (stars.length === 0) initSaturnRing(props);
+  const R0 = Math.min(width, height) * 0.22;
+  const cx = width * 0.5 + (mx > 0 ? (mx - width / 2) * 0.035 : Math.sin(time * 0.15) * 8);
+  const cy = height * 0.5 + (my > 0 ? (my - height / 2) * 0.03 : Math.cos(time * 0.12) * 6);
+  const tilt = -0.3 + 0.05 * Math.sin(time * 0.14);
+  const spin = reducedMotion ? time * 0.05 : time;
+
+  ctx.globalCompositeOperation = "source-over";
+  for (const s of stars) {
+    const tw = 0.35 + 0.65 * Math.abs(Math.sin(time * s.ts * (reducedMotion ? 0.4 : 1) + s.ph));
+    ctx.fillStyle = hsl(s.hue, 25, dark ? 92 : 32, tw);
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, 0.5 + s.z * 1.2, 0, TAU);
+    ctx.fill();
+  }
+
+  // Back half of the rings.
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(tilt);
+  for (let k = 0; k < 6; k++) {
+    const rx = R0 * (1.42 + k * 0.19);
+    const ry = rx * 0.3;
+    ctx.strokeStyle = hsl(42 - k * 2, 45, dark ? 62 - k * 4 : 46, 0.34 - k * 0.03);
+    ctx.lineWidth = k === 0 ? 1 : 2 + (k % 3);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, Math.PI, TAU);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Planet body.
+  const sphere = ctx.createRadialGradient(cx - R0 * 0.35, cy - R0 * 0.4, R0 * 0.1, cx, cy, R0 * 1.1);
+  sphere.addColorStop(0, hsl(42, 62, dark ? 76 : 68, 1));
+  sphere.addColorStop(0.55, hsl(35, 55, dark ? 57 : 58, 1));
+  sphere.addColorStop(1, hsl(28, 45, dark ? 24 : 44, 1));
+  ctx.fillStyle = sphere;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R0, 0, TAU);
+  ctx.fill();
+
+  // Cloud bands clipped to the disc.
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, R0, 0, TAU);
+  ctx.clip();
+  for (let i = -4; i <= 4; i++) {
+    const y = cy + (i / 4.6) * R0;
+    ctx.fillStyle = hsl(38 + i * 2, 45, dark ? 68 : 70, 0.16);
+    ctx.beginPath();
+    ctx.ellipse(cx, y, R0 * 1.05, R0 * (0.05 + Math.abs(i) * 0.006), 0, 0, TAU);
+    ctx.fill();
+  }
+  // Terminator shadow.
+  const shade = ctx.createLinearGradient(cx - R0, cy, cx + R0, cy);
+  shade.addColorStop(0, "rgba(0,0,0,0)");
+  shade.addColorStop(0.65, "rgba(0,0,0,0.12)");
+  shade.addColorStop(1, "rgba(0,0,0,0.45)");
+  ctx.fillStyle = shade;
+  ctx.fillRect(cx - R0, cy - R0, R0 * 2, R0 * 2);
+  ctx.restore();
+
+  // Front half of the rings.
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(tilt);
+  for (let k = 0; k < 6; k++) {
+    const rx = R0 * (1.42 + k * 0.19);
+    const ry = rx * 0.3;
+    ctx.strokeStyle = hsl(46 - k * 3, 55, dark ? 70 - k * 4 : 52, 0.55 - k * 0.06);
+    ctx.lineWidth = k === 0 ? 1 : 2 + (k % 3);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Moons.
+  for (const m of moons) {
+    m.a += m.speed * (reducedMotion ? 0.4 : 1);
+    const x = cx + Math.cos(m.a) * R0 * m.dist;
+    const y = cy + Math.sin(m.a) * R0 * m.dist * 0.55;
+    const mg = ctx.createRadialGradient(x - m.r * 0.4, y - m.r * 0.4, 0.5, x, y, m.r * 2);
+    mg.addColorStop(0, hsl(m.hue, 40, dark ? 84 : 70, 0.95));
+    mg.addColorStop(1, hsl(m.hue, 30, dark ? 40 : 55, 0.1));
+    ctx.fillStyle = mg;
+    ctx.beginPath();
+    ctx.arc(x, y, m.r * 2, 0, TAU);
+    ctx.fill();
+    ctx.fillStyle = hsl(m.hue, 25, dark ? 86 : 62, 1);
+    ctx.beginPath();
+    ctx.arc(x, y, m.r, 0, TAU);
+    ctx.fill();
+  }
+  void spin;
+}
+
+/* ---------- 44. Cosmic Planets (a system of drifting worlds) ---------- */
+
+interface Planet {
+  x: number;
+  y: number;
+  r: number;
+  hue: number;
+  ring: boolean;
+  moons: number;
+  ph: number;
+  speed: number;
+  z: number;
+}
+
+function initCosmicPlanets(props?: Partial<EffectProps>): void {
+  const W = props?.width ?? WIDTH;
+  const H = props?.height ?? HEIGHT;
+  const base = Math.min(W || 1200, H || 800);
+  const A = storeFor<Planet>("cosmic-planets");
+  A.length = 0;
+  const hues = [18, 42, 196, 148, 288, 330];
+  // Spread the worlds on a jittered 3x2 grid so they never clump in one corner.
+  const cellW = W / 3;
+  const cellH = H / 2;
+  A.push(
+    ...mk(6, (i) => ({
+      x: cellW * ((i % 3) + 0.5 + (R() - 0.5) * 0.55),
+      y: cellH * (Math.floor(i / 3) + 0.5 + (R() - 0.5) * 0.55),
+      r: base * (0.035 + R() * 0.075),
+      hue: hues[i % hues.length] ?? 200,
+      ring: i === 1 || i === 4,
+      moons: i % 3 === 0 ? 2 : i % 2,
+      ph: R() * TAU,
+      speed: 0.0008 + R() * 0.0018,
+      z: 0.5 + R() * 0.6,
+    })),
+  );
+  const stars = storeFor<NightStar>("cosmic-planets::stars");
+  stars.length = 0;
+  stars.push(
+    ...mk(120, () => ({
+      x: R() * W,
+      y: R() * H,
+      z: 0.3 + R() * 0.7,
+      ph: R() * TAU,
+      ts: 0.3 + R() * 1.3,
+      hue: 205 + R() * 55,
+    })),
+  );
+}
+
+function drawCosmicPlanets(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, dark, reducedMotion } = props;
+  const A = storeFor<Planet>("cosmic-planets");
+  if (A.length === 0) initCosmicPlanets(props);
+  const stars = storeFor<NightStar>("cosmic-planets::stars");
+  if (stars.length === 0) initCosmicPlanets(props);
+  const px = mx > 0 ? (mx - width / 2) * -0.02 : 0;
+  const py = my > 0 ? (my - height / 2) * -0.02 : 0;
+
+  for (const s of stars) {
+    const tw = 0.3 + 0.7 * Math.abs(Math.sin(time * s.ts + s.ph));
+    ctx.fillStyle = hsl(s.hue, 25, dark ? 92 : 32, tw * 0.9);
+    ctx.beginPath();
+    ctx.arc(s.x + px * s.z * 0.4, s.y + py * s.z * 0.4, 0.4 + s.z, 0, TAU);
+    ctx.fill();
+  }
+
+  for (const p of A) {
+    p.ph += p.speed * (reducedMotion ? 0.35 : 1);
+    p.x += Math.cos(p.ph) * 0.18 * p.z + props.wind * 0.06;
+    p.y += Math.sin(p.ph * 0.8) * 0.14 * p.z;
+    wrap(p, p.r * 1.6);
+    const x = p.x + px * p.z;
+    const y = p.y + py * p.z;
+
+    // Atmosphere.
+    const halo = ctx.createRadialGradient(x, y, p.r * 0.8, x, y, p.r * 1.7);
+    halo.addColorStop(0, hsl(p.hue, 90, 62, dark ? 0.22 : 0.12));
+    halo.addColorStop(1, hsl(p.hue, 90, 60, 0));
+    ctx.fillStyle = halo;
+    ctx.beginPath();
+    ctx.arc(x, y, p.r * 1.7, 0, TAU);
+    ctx.fill();
+
+    // Back half of the ring, drawn behind the planet so it reads as a ring.
+    if (p.ring) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-0.32 + Math.sin(time * 0.1 + p.ph) * 0.05);
+      for (let k = 0; k < 3; k++) {
+        const rx = p.r * (1.55 + k * 0.28);
+        ctx.strokeStyle = hsl(p.hue - 6, 55, dark ? 60 : 46, 0.3 - k * 0.06);
+        ctx.lineWidth = 1.5 + k;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, rx * 0.28, 0, Math.PI, TAU);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Body.
+    const g = ctx.createRadialGradient(x - p.r * 0.35, y - p.r * 0.4, p.r * 0.1, x, y, p.r);
+    g.addColorStop(0, hsl(p.hue, 70, dark ? 76 : 66, 1));
+    g.addColorStop(0.55, hsl(p.hue + 8, 62, dark ? 56 : 54, 1));
+    g.addColorStop(1, hsl(p.hue + 18, 55, dark ? 18 : 36, 1));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, p.r, 0, TAU);
+    ctx.fill();
+
+    // Surface details, clipped.
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, p.r, 0, TAU);
+    ctx.clip();
+    for (let i = -2; i <= 2; i++) {
+      ctx.fillStyle = hsl(p.hue + i * 4, 55, dark ? 70 : 60, 0.12);
+      ctx.beginPath();
+      ctx.ellipse(x, y + (i / 2.4) * p.r, p.r * 1.1, p.r * 0.07, 0, 0, TAU);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Front half of the ring, in front of the planet.
+    if (p.ring) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-0.32 + Math.sin(time * 0.1 + p.ph) * 0.05);
+      for (let k = 0; k < 3; k++) {
+        const rx = p.r * (1.55 + k * 0.28);
+        ctx.strokeStyle = hsl(p.hue - 6, 55, dark ? 74 : 56, 0.42 - k * 0.09);
+        ctx.lineWidth = 1.5 + k;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, rx, rx * 0.28, 0, 0, Math.PI);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // Moons.
+    for (let m = 0; m < p.moons; m++) {
+      const a = p.ph * (2 + m) + m * 2.1;
+      const md = p.r * (1.75 + m * 0.4);
+      const mxp = x + Math.cos(a) * md;
+      const myp = y + Math.sin(a) * md * 0.6;
+      ctx.fillStyle = hsl(p.hue + 30, 30, dark ? 88 : 60, 0.9);
+      ctx.beginPath();
+      ctx.arc(mxp, myp, 1.6 + m * 0.7, 0, TAU);
+      ctx.fill();
+    }
+  }
+  void height;
+}
+
+/* ---------- 45. Emoji (picture-like particles) ---------- */
+
+const EMOJI_SET = ["✨", "🌟", "⭐", "🚀", "🪐", "🌙", "💫", "👾", "🍀", "🎈", "🔥", "❄️"];
+
+interface EmojiP {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  rot: number;
+  vr: number;
+  s: number;
+  e: number;
+  ph: number;
+}
+
+function initEmoji(props?: Partial<EffectProps>): void {
+  const W = props?.width ?? WIDTH;
+  const H = props?.height ?? HEIGHT;
+  const A = storeFor<EmojiP>("emoji");
+  A.length = 0;
+  A.push(
+    ...mk(cnt(30), () => ({
+      x: R() * W,
+      y: R() * H,
+      vx: (R() - 0.5) * 0.9,
+      vy: (R() - 0.5) * 0.9,
+      rot: (R() - 0.5) * 0.6,
+      vr: (R() - 0.5) * 0.02,
+      s: 20 + R() * 22,
+      e: Math.floor(R() * EMOJI_SET.length),
+      ph: R() * TAU,
+    })),
+  );
+}
+
+function clickEmoji(props: EffectProps, x: number, y: number): void {
+  const A = storeFor<EmojiP>("emoji");
+  A.push({
+    x,
+    y,
+    vx: (R() - 0.5) * 2,
+    vy: (R() - 0.5) * 2,
+    rot: (R() - 0.5) * 0.6,
+    vr: (R() - 0.5) * 0.04,
+    s: 24 + R() * 18,
+    e: Math.floor(R() * EMOJI_SET.length),
+    ph: R() * TAU,
+  });
+  if (A.length > 60) A.splice(0, A.length - 60);
+  void props;
+}
+
+function drawEmoji(props: EffectProps): void {
+  const { ctx, width, height, time, mx, my, mvx, mvy, reducedMotion } = props;
+  const A = storeFor<EmojiP>("emoji");
+  if (A.length === 0) initEmoji(props);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (const p of A) {
+    p.ph += reducedMotion ? 0.01 : 0.03;
+    p.x += p.vx + Math.sin(p.ph) * 0.35;
+    p.y += p.vy + Math.cos(p.ph * 0.7) * 0.3;
+    p.rot += p.vr * (reducedMotion ? 0.3 : 1);
+    rep(p, 160, 0.05, mx, my, mvx, mvy);
+    wrap(p, p.s);
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.rot + Math.sin(p.ph) * 0.2);
+    ctx.font = `${p.s}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+    ctx.globalAlpha = 0.9;
+    ctx.fillText(EMOJI_SET[p.e] ?? "✨", 0, 0);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  void time;
+  void width;
+  void height;
+}
+
 /* ---------- registration ---------- */
 
 export const effects: EffectDefinition[] = [
-  /* Core set (v0.1 – v0.3) */
-  { id: "fireflies", name: "Fireflies", hue: 60, draw: drawFireflies, reset: initFireflies },
-  { id: "snow", name: "Snow", hue: 205, draw: drawSnow, reset: initSnow },
-  { id: "bubbles", name: "Bubbles", hue: 190, draw: drawBubbles, click: clickBubbles, reset: initBubbles },
-  { id: "confetti", name: "Confetti", hue: 330, draw: drawConfetti, reset: initConfetti },
-  { id: "constellation", name: "Constellation", hue: 200, draw: drawConstellation, reset: initConstellation },
-  { id: "stardust", name: "Stardust", hue: 320, draw: drawStardust, reset: initStardust },
-  { id: "embers", name: "Embers", hue: 25, draw: drawEmbers, reset: initEmbers },
-  { id: "leaves", name: "Leaves", hue: 30, draw: drawLeaves, reset: initLeaves },
-  { id: "rain", name: "Rain", hue: 205, draw: drawRain, click: clickRain, reset: initRain },
-  { id: "flow", name: "Flow", hue: 180, draw: drawFlow, tint: true, reset: initFlow },
-  { id: "spooky", name: "Spooky", hue: 280, draw: drawSpooky, click: clickSpooky, reset: initSpooky },
-  { id: "neon", name: "Neon", hue: 315, draw: drawNeon, reset: initNeon },
-  { id: "wind", name: "Wind", hue: 210, draw: drawWind, reset: initWind },
-  { id: "sunlight", name: "Sunlight", hue: 45, draw: drawSunlight, reset: initSunlight },
-  { id: "stars", name: "Stars", hue: 220, draw: drawStars, click: clickStars, reset: initStars },
+  /* Presets — parity with the tsParticles preset catalogue */
+  { id: "ambient", name: "Ambient", group: "Presets", hue: 220, draw: drawAmbient, reset: initAmbient },
+  { id: "big-circles", name: "Big Circles", group: "Presets", hue: 210, draw: drawBigCircles, reset: initBigCircles },
+  { id: "bubbles", name: "Bubbles", group: "Presets", hue: 190, draw: drawBubbles, click: clickBubbles, reset: initBubbles },
+  { id: "confetti", name: "Confetti", group: "Presets", hue: 330, draw: drawConfetti, reset: initConfetti },
+  { id: "confetti-cannon", name: "Confetti Cannon", group: "Presets", hue: 330, draw: drawConfettiCannon, click: clickConfettiCannon, reset: initConfettiCannon },
+  { id: "confetti-explosions", name: "Confetti Explosions", group: "Presets", hue: 330, draw: drawConfettiExplosions, click: clickConfettiExplosions, reset: initConfettiExplosions },
+  { id: "confetti-falling", name: "Confetti Falling", group: "Presets", hue: 330, draw: drawConfettiFalling, reset: initConfettiFalling },
+  { id: "confetti-parade", name: "Confetti Parade", group: "Presets", hue: 330, draw: drawConfettiParade, reset: initConfettiParade },
+  { id: "fire", name: "Fire", group: "Presets", hue: 25, draw: drawFire, reset: initFire },
+  { id: "fireflies", name: "Fireflies", group: "Presets", hue: 60, draw: drawFireflies, reset: initFireflies },
+  { id: "fireworks", name: "Fireworks", group: "Presets", hue: 300, draw: drawFireworks, click: clickFireworks, reset: initFireworks },
+  { id: "fountain", name: "Fountain", group: "Presets", hue: 200, draw: drawFountain, reset: initFountain },
+  { id: "hyperspace", name: "Hyperspace", group: "Presets", hue: 260, draw: drawHyperspace, reset: initHyperspace },
+  { id: "links", name: "Links", group: "Presets", hue: 210, draw: drawLinks, reset: initLinks },
+  { id: "matrix", name: "Matrix", group: "Presets", hue: 135, draw: drawMatrix, reset: initMatrix },
+  { id: "sea-anemone", name: "Sea Anemone", group: "Presets", hue: 170, draw: drawSeaAnemone, reset: initSeaAnemone },
+  { id: "snow", name: "Snow", group: "Presets", hue: 205, draw: drawSnow, reset: initSnow },
+  { id: "squares", name: "Squares", group: "Presets", hue: 210, draw: drawSquares, reset: initSquares },
+  { id: "stars", name: "Stars", group: "Presets", hue: 220, draw: drawStars, click: clickStars, reset: initStars },
+  { id: "triangles", name: "Triangles", group: "Presets", hue: 260, draw: drawTriangles, reset: initTriangles },
 
-  /* Preset set — parity with the tsParticles preset catalogue */
-  { id: "ambient", name: "Ambient", hue: 220, draw: drawAmbient, reset: initAmbient },
-  { id: "big-circles", name: "Big Circles", hue: 210, draw: drawBigCircles, reset: initBigCircles },
-  { id: "confetti-cannon", name: "Confetti Cannon", hue: 330, draw: drawConfettiCannon, click: clickConfettiCannon, reset: initConfettiCannon },
-  { id: "confetti-explosions", name: "Confetti Explosions", hue: 330, draw: drawConfettiExplosions, click: clickConfettiExplosions, reset: initConfettiExplosions },
-  { id: "confetti-falling", name: "Confetti Falling", hue: 330, draw: drawConfettiFalling, reset: initConfettiFalling },
-  { id: "confetti-parade", name: "Confetti Parade", hue: 330, draw: drawConfettiParade, reset: initConfettiParade },
-  { id: "fire", name: "Fire", hue: 25, draw: drawFire, reset: initFire },
-  { id: "fireworks", name: "Fireworks", hue: 300, draw: drawFireworks, click: clickFireworks, reset: initFireworks },
-  { id: "fountain", name: "Fountain", hue: 200, draw: drawFountain, reset: initFountain },
-  { id: "hyperspace", name: "Hyperspace", hue: 260, draw: drawHyperspace, reset: initHyperspace },
-  { id: "links", name: "Links", hue: 210, draw: drawLinks, reset: initLinks },
-  { id: "matrix", name: "Matrix", hue: 135, draw: drawMatrix, reset: initMatrix },
-  { id: "sea-anemone", name: "Sea Anemone", hue: 170, draw: drawSeaAnemone, reset: initSeaAnemone },
-  { id: "squares", name: "Squares", hue: 210, draw: drawSquares, reset: initSquares },
-  { id: "triangles", name: "Triangles", hue: 260, draw: drawTriangles, reset: initTriangles },
+  /* Classic — the original hand-written set */
+  { id: "constellation", name: "Constellation", group: "Classic", hue: 200, draw: drawConstellation, reset: initConstellation },
+  { id: "stardust", name: "Stardust", group: "Classic", hue: 320, draw: drawStardust, reset: initStardust },
+  { id: "embers", name: "Embers", group: "Classic", hue: 25, draw: drawEmbers, reset: initEmbers },
+  { id: "leaves", name: "Leaves", group: "Classic", hue: 30, draw: drawLeaves, reset: initLeaves },
+  { id: "rain", name: "Rain", group: "Classic", hue: 205, draw: drawRain, click: clickRain, reset: initRain },
+  { id: "flow", name: "Flow", group: "Classic", hue: 180, draw: drawFlow, tint: true, reset: initFlow },
+  { id: "spooky", name: "Spooky", group: "Classic", hue: 280, draw: drawSpooky, click: clickSpooky, reset: initSpooky },
+  { id: "neon", name: "Neon", group: "Classic", hue: 315, draw: drawNeon, reset: initNeon },
+  { id: "wind", name: "Wind", group: "Classic", hue: 210, draw: drawWind, reset: initWind },
+  { id: "sunlight", name: "Sunlight", group: "Classic", hue: 45, draw: drawSunlight, reset: initSunlight },
 
-  /* Original effects */
-  { id: "aurora", name: "Aurora", hue: 160, draw: drawAurora, tint: true, reset: initAurora },
-  { id: "nebula", name: "Nebula", hue: 280, draw: drawNebula, reset: initNebula },
-  { id: "petals", name: "Petals", hue: 335, draw: drawPetals, reset: initPetals },
-  { id: "glitch", name: "Glitch", hue: 190, draw: drawGlitch, click: clickGlitch, reset: initGlitch },
-  { id: "ripple", name: "Ripple", hue: 200, draw: drawRipple, click: clickRipple, reset: initRipple },
+  /* Cosmic — skies, stars and planets */
+  { id: "aurora", name: "Aurora", group: "Cosmic", hue: 160, draw: drawAurora, tint: true, reset: initAurora },
+  { id: "nebula", name: "Nebula", group: "Cosmic", hue: 280, draw: drawNebula, reset: initNebula },
+  { id: "starfall", name: "Starfall", group: "Cosmic", hue: 272, draw: drawStarfall, click: clickStarfall, reset: initStarfall },
+  { id: "star-drops", name: "Star Drops", group: "Cosmic", hue: 272, draw: drawStarDrops, click: clickStarDrops, reset: initStarDrops },
+  { id: "night-sky", name: "Night Sky", group: "Cosmic", hue: 225, draw: drawNightSky, reset: initNightSky },
+  { id: "space-rocks", name: "Space Rocks", group: "Cosmic", hue: 32, draw: drawSpaceRocks, reset: initSpaceRocks },
+  { id: "saturn-ring", name: "Saturn Ring", group: "Cosmic", hue: 40, draw: drawSaturnRing, reset: initSaturnRing },
+  { id: "cosmic-planets", name: "Cosmic Planets", group: "Cosmic", hue: 210, draw: drawCosmicPlanets, reset: initCosmicPlanets },
 
-  /* Signature effect: drifting sky + purple stars that splash into water rings */
-  { id: "starfall", name: "Starfall", hue: 272, draw: drawStarfall, click: clickStarfall, reset: initStarfall },
+  /* Digital — screens, signals and sound */
+  { id: "glitch", name: "Glitch", group: "Digital", hue: 190, draw: drawGlitch, click: clickGlitch, reset: initGlitch },
+  { id: "hacker", name: "Hacker", group: "Digital", hue: 135, draw: drawHacker, reset: initHacker },
+  { id: "music-bars", name: "Music Bars", group: "Digital", hue: 260, draw: drawMusicBars, click: clickMusicBars, reset: initMusicBars },
+  { id: "radio-glitch", name: "Radio Glitch", group: "Digital", hue: 186, draw: drawRadio, click: clickRadio, reset: initRadio },
+
+  /* Playful — petals, water and pictures */
+  { id: "petals", name: "Petals", group: "Playful", hue: 335, draw: drawPetals, reset: initPetals },
+  { id: "ripple", name: "Ripple", group: "Playful", hue: 200, draw: drawRipple, click: clickRipple, reset: initRipple },
+  { id: "emoji", name: "Emoji", group: "Playful", hue: 300, draw: drawEmoji, click: clickEmoji, reset: initEmoji },
 ];
 
 export function getEffect(id: string): EffectDefinition {
