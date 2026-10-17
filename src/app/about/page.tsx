@@ -135,6 +135,13 @@ export default function AboutPage() {
             client page and get fireflies, snow, fireworks, matrix, aurora, starfall, hacker, Saturn rings and 37 more — every
             effect reacts to the pointer, fires on click, and bends with scroll.
           </p>
+          <div className="mt-6 overflow-hidden rounded-xl border border-border shadow-sm">
+            <img
+              src="/shot.jpg"
+              alt="ambient-effects demo panel with effect picker and canvas"
+              className="block w-full"
+            />
+          </div>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/" passHref>
               <Button size="lg">Open the live demo</Button>
