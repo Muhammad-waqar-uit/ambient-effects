@@ -137,8 +137,8 @@ export default function AboutPage() {
           </p>
           <div className="mt-6 overflow-hidden rounded-xl border border-border shadow-sm">
             <img
-              src="/shot.jpg"
-              alt="ambient-effects demo panel with effect picker and canvas"
+              src="/banner.svg"
+              alt="ambient-effects — 45 ambient canvas effects for Next.js"
               className="block w-full"
             />
           </div>
